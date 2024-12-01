@@ -1,8 +1,8 @@
 #[starknet::interface]
 trait IPacRoyale<TContractState> {
     fn add_player(ref self: TContractState);
-    fn get_position(self: @TContractState) -> (u64, u64);
-    fn get_positions(self: @TContractState) -> Array<(u64, u64)>;
+    fn get_position(self: @TContractState) -> Array<u64>;
+    fn get_positions(self: @TContractState) -> Array<u64>;
     fn move(ref self: TContractState, direction: felt252);
     fn get_map_value(self: @TContractState, x: u64, y: u64) -> felt252;
     fn get_map(self: @TContractState) -> Array<felt252>;
@@ -61,10 +61,13 @@ mod PacRoyale {
             self.players.append().write(caller);
         }
 
-        fn get_position(self: @ContractState) -> (u64, u64) {
+        fn get_position(self: @ContractState) -> Array<u64> {
+            let mut positions = ArrayTrait::new();
             let caller = get_caller_address();
             let player = self.player_map.entry(caller).read();
-            (player.x, player.y)
+            positions.append(player.x);
+            positions.append(player.y);
+            positions
         }
 
         fn get_map(self: @ContractState) -> Array<felt252> {
@@ -86,7 +89,7 @@ mod PacRoyale {
         }
 
         // Get all players positions
-        fn get_positions(self: @ContractState) -> Array<(u64, u64)> {
+        fn get_positions(self: @ContractState) -> Array<u64> {
             let mut positions = ArrayTrait::new();
             let mut i: u64 = 0;
             
@@ -97,7 +100,8 @@ mod PacRoyale {
                 
                 let player_address = self.players.at(i.try_into().unwrap()).read();
                 let player = self.player_map.entry(player_address).read();
-                positions.append((player.x, player.y));
+                positions.append(player.x);
+                positions.append(player.y);
                 
                 i += 1;
             };
