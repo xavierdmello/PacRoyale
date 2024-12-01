@@ -108,13 +108,14 @@ function App() {
             name: "add_player",
             type: "function",
             inputs: [],
-            outputs: [],
-            state_mutability: "external",
+            outputs: [{ name: "", type: "felt252" }],
+            stateMutability: "external",
           },
-        ],
+        ],  
         PACROYALE_ADDRESS,
         account,
-        { cairoVersion: "1" }
+        // @ts-ignore
+        { cairoVersion: "2" }
       );
 
       const result = await contract.add_player();
