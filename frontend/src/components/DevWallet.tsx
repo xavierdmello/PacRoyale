@@ -4,6 +4,7 @@ import { AccountInterface, ProviderInterface } from "starknet";
 import { RpcProvider, Account, constants } from "starknet";
 import { useEffect, useState } from "react";
 import SwapModal from "./SwapModal";
+import { PACROYALE_ADDRESS, PACTOKEN_ADDRESS, USDC_ADDRESS } from "./ContractAddresses";
 
 const PREFUNDED_ACCOUNTS = [
   {
@@ -120,8 +121,22 @@ export function DevWallet() {
   const { connect } = useConnect();
   const { address } = useAccount();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { data: balance } = useBalance({
+  
+  // Add balance hooks for both tokens
+  const { data: ethBalance } = useBalance({
     address,
+    watch: true
+  });
+
+  const { data: pacBalance } = useBalance({
+    address,
+    token: PACTOKEN_ADDRESS,
+    watch: true
+  });
+
+  const { data: usdcBalance } = useBalance({
+    address,
+    token: USDC_ADDRESS,
     watch: true
   });
 
@@ -156,10 +171,22 @@ export function DevWallet() {
       <div className="flex items-center gap-4">
         {address ? (
           <>
-            <div className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg">
-              <span className="text-gray-400">
-                {balance?.formatted || '0'} {balance?.symbol || 'ETH'}
-              </span>
+            <div className="flex items-center gap-4">
+              <div className="bg-gray-800 px-4 py-2 rounded-lg">
+                <span className="text-gray-400">
+                  {ethBalance?.formatted || '0'} {ethBalance?.symbol || 'ETH'}
+                </span>
+              </div>
+              <div className="bg-gray-800 px-4 py-2 rounded-lg">
+                <span className="text-gray-400">
+                  {pacBalance?.formatted || '0'} PAC
+                </span>
+              </div>
+              <div className="bg-gray-800 px-4 py-2 rounded-lg">
+                <span className="text-gray-400">
+                  {usdcBalance?.formatted || '0'} USDC
+                </span>
+              </div>
               <span className="text-white">
                 {truncateAddress(address)}
               </span>
