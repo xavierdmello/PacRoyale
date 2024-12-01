@@ -6,12 +6,10 @@ import Navbar from "./components/Navbar"
 import LandingPage from './components/LandingPage'
 
 function App() {
-
   return (
-    <>
-    <Navbar/>
-    <LandingPage/>
-    </>
+    <div className="overflow-x-hidden w-full">
+      <LandingPage/>
+    </div>
   )
 }
 
