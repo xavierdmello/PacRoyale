@@ -4,7 +4,7 @@ const Instructions: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="mt-12 bg-gray-400 p-6 rounded-lg">
+    <div className="mt-12 bg-gray-800 p-6 rounded-lg">
       <h1
         className="text-xl cursor-pointer flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
