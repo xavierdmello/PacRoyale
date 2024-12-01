@@ -184,7 +184,7 @@ function App() {
       {page === "landing" && <LandingPage setPage={setPage} />}
       {page === "board" && (
         <div>
-          <Board board={boardData} playerPositions={playerPositions} />
+          <Board board={boardData} playerPositions={playerPositions} handleMove={handleMove} />
 
           <div className="fixed right-4 top-20 flex flex-col gap-2">
             <button
