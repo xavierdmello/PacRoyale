@@ -5,6 +5,7 @@ trait IPacRoyale<TContractState> {
     fn get_positions(self: @TContractState) -> Array<(u64, u64)>;
     fn move(ref self: TContractState, direction: felt252);
     fn get_map_value(self: @TContractState, x: u64, y: u64) -> felt252;
+    fn get_map(self: @TContractState) -> Array<felt252>;
 }
 
 #[starknet::contract]
@@ -15,7 +16,6 @@ mod PacRoyale {
     };
     use core::starknet::{ContractAddress, get_caller_address};
     use core::array::ArrayTrait;
-
     const MAP_WIDTH: u64 = 23;
     const MAP_HEIGHT: u64 = 23;
 
@@ -53,6 +53,25 @@ mod PacRoyale {
             (player.x, player.y)
         }
 
+        fn get_map(self: @ContractState) -> Array<felt252> {
+            let mut map_array = ArrayTrait::new();
+            let mut i: u64 = 0;
+            
+            loop {
+                if i >= self.map.len() {
+                    break;
+                }
+                
+                let value = self.map.at(i).read();
+                map_array.append(value);
+                
+                i += 1;
+            };
+            
+            map_array
+        }
+
+        // Get all players positions
         fn get_positions(self: @ContractState) -> Array<(u64, u64)> {
             let mut positions = ArrayTrait::new();
             let mut i: u64 = 0;
