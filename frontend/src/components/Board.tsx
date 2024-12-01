@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import './crt.css';
 import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
+import chompSoundFile from "../assets/pacman_chomp.wav";
+import beginningSoundFile from "../assets/pacman_beginning.wav";
+
+const chompSound = new Audio(chompSoundFile);
+const beginningSound = new Audio(beginningSoundFile);
 
 interface BoardProps {
   board: number[];
@@ -10,6 +15,12 @@ interface BoardProps {
 const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
   const GRID_SIZE = 23;
   const [pacmanPos, setPacmanPos] = useState({ x: 11, y: 11 });
+  
+  useEffect(() => {
+    beginningSound.play().catch((err) => {
+      console.warn("Error playing beginning sound:", err);
+    });
+  }, []);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -30,6 +41,13 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
             newPos.x = Math.min(GRID_SIZE - 1, prev.x + 1);
             break;
         }
+
+        // Play chomp sound on valid keypress
+        chompSound.currentTime = 0; // Reset to start
+        chompSound.play().catch((err) => {
+          console.warn("Error playing chomp sound:", err);
+        }); 
+
         return newPos;
       });
     };
