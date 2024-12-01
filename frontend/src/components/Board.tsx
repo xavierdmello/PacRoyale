@@ -11,7 +11,7 @@ import PacmanImage from "../assets/pacman.gif";
 
 interface BoardProps {
   board: number[];
-  playerPositions: [number, number][];
+  playerPositions: [number, number, boolean, boolean][];
   handleMove: (direction: number) => void;
 }
 
@@ -126,7 +126,7 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
             {[...Array(GRID_SIZE)].map((_, cellIndex) => {
               const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
               const isPlayer = playerPositions.some(
-                ([x, y]) => x === cellIndex && y === rowIndex
+                ([px, py, _, isDead]) => px === cellIndex && py === rowIndex && !isDead
               );
 
               return (
@@ -167,21 +167,23 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          switch (playerIndex) {
-                            case 0: return 'brightness(0) saturate(100%) invert(88%) sepia(61%) saturate(4000%) hue-rotate(360deg)'; // Bright Yellow (#FFFF00)
-                            case 1: return 'brightness(0) saturate(100%) invert(50%) sepia(85%) saturate(1267%) hue-rotate(357deg)'; // Orange-Red (#FF4500)
-                            case 2: return 'brightness(0) saturate(100%) invert(23%) sepia(91%) saturate(6453%) hue-rotate(343deg)'; // Hot Pink (#FF1493)
-                            case 3: return 'brightness(0) saturate(100%) invert(90%) sepia(95%) saturate(9938%) hue-rotate(122deg)'; // Bright Green (#00FF00)
-                            default: return 'brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3000%) hue-rotate(1960deg)'; // Default yellow
-                          }
+                          const [, , isPoweredUp] = playerPositions[playerIndex];
+                          const baseColor = (() => {
+                            switch (playerIndex) {
+                              case 0: return 'brightness(0) saturate(100%) invert(88%) sepia(61%) saturate(4000%) hue-rotate(360deg)';
+                              case 1: return 'brightness(0) saturate(100%) invert(50%) sepia(85%) saturate(1267%) hue-rotate(357deg)';
+                              case 2: return 'brightness(0) saturate(100%) invert(23%) sepia(91%) saturate(6453%) hue-rotate(343deg)';
+                              case 3: return 'brightness(0) saturate(100%) invert(90%) sepia(95%) saturate(9938%) hue-rotate(122deg)';
+                              default: return 'brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3000%) hue-rotate(1960deg)';
+                            }
+                          })();
+                          return isPoweredUp ? baseColor + ' brightness(1.5)' : baseColor;
                         })(),
                         transform: (() => {
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
                           const direction = playerDirections.get(playerIndex.toString());
-                          console.log(`Rendering player ${playerIndex} at (${cellIndex},${rowIndex}) with direction ${direction}`);
-                          
                           return `translate(-50%, -50%) rotate(${
                             direction === 'right' ? '0deg' :
                             direction === 'down' ? '90deg' :
