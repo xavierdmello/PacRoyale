@@ -38,6 +38,7 @@ mod PacRoyale {
     impl PacRoyaleImpl of super::IPacRoyale<ContractState> {
         fn add_player(ref self: ContractState) {
             let player_no = self.players.len();
+            assert(player_no < 4, 'Game is full');
             let spawn_point = self.spawn_points.at(player_no).read();
             let (x, y) = spawn_point;
 

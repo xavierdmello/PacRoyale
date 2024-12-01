@@ -8,7 +8,7 @@ interface BoardProps {
 const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
   const GRID_SIZE = 23;
   const [pacmanPos, setPacmanPos] = useState({ x: 11, y: 11 });
-
+  console.log({playerPositions})
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       setPacmanPos(prev => {

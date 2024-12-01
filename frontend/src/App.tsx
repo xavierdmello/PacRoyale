@@ -1,11 +1,10 @@
 import "./App.css";
-
 import { DevWallet } from "./components/DevWallet";
-import { Provider, Contract, RpcProvider } from "starknet";
+import { Contract, RpcProvider } from "starknet";
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/LandingPage";
 import Board from "./components/Board";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
 import { useAccount } from "@starknet-react/core";
 
@@ -13,95 +12,92 @@ function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
   const [playerPositions, setPlayerPositions] = useState<[number, number][]>([]);
-  const { address } = useAccount();
+  const { address, account } = useAccount();
   const provider = new RpcProvider({
     nodeUrl: "http://100.74.177.49:5050",
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const provider = new RpcProvider({
-          nodeUrl: "http://100.74.177.49:5050",
-        });
-
-        // Fetch board data
-        const boardResponse = await provider.callContract({
-          contractAddress: PACROYALE_ADDRESS,
-          entrypoint: "get_map",
-        });
-
-        // Fetch player positions
-        const positionsResponse = await provider.callContract({
-          contractAddress: PACROYALE_ADDRESS,
-          entrypoint: "get_positions",
-        });
-
-        if (boardResponse) {
-          const parsedData = boardResponse.slice(1).map((hex: string) =>
-            parseInt(hex, 16)
-          );
-          setBoardData(parsedData);
-        }
-
-        if (positionsResponse) {
-          const positions = positionsResponse.slice(1).map((arr: any) => [
-            parseInt(arr[0], 16),
-            parseInt(arr[1], 16)
-          ]);
-          setPlayerPositions(positions);
-        }
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleAddPlayer = async () => {
+  const fetchGameData = useCallback(async () => {
     try {
-      const contract = new Contract(
-        [
-          {
-            name: "add_player",
-            type: "function",
-            inputs: [],
-            outputs: [],
-          },
-        ],
-        PACROYALE_ADDRESS,
-        provider
-      );
+      // Fetch board data
+      const boardResponse = await provider.callContract({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "get_map",
+      });
 
-      const result = await contract.add_player();
-      console.log("Added player:", result);
+      // Fetch player positions
+      const positionsResponse = await provider.callContract({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "get_positions",
+      });
+
+      if (boardResponse) {
+        const parsedData = boardResponse.slice(1).map((hex: string) =>
+          parseInt(hex, 16)
+        );
+        setBoardData(parsedData);
+      }
+
+      if (positionsResponse) {
+        const positions = positionsResponse.slice(1).map((arr: any) => [
+          parseInt(arr[0], 16),
+          parseInt(arr[1], 16)
+        ]);
+        setPlayerPositions(positions);
+      }
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    }
+  }, [provider]);
+
+  useEffect(() => {
+    fetchGameData();
+    // Set up interval to fetch data periodically
+    const interval = setInterval(fetchGameData, 2000);
+    return () => clearInterval(interval);
+  }, [fetchGameData]);
+
+  const handleAddPlayer = useCallback(async () => {
+    if (!account) {
+      console.error("No account connected");
+      return;
+    }
+
+    try {
+      const calldata = {
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "add_player",
+        calldata: []
+      };
+
+      const tx = await account.execute(calldata);
+      await provider.waitForTransaction(tx.transaction_hash);
+      await fetchGameData();
     } catch (error) {
       console.error("Failed to add player:", error);
     }
-  };
+  }, [account, provider, fetchGameData]);
 
-  const handleMove = async (direction: number) => {
+  const handleMove = useCallback(async (direction: number) => {
+    if (!account) {
+      console.error("No account connected");
+      return;
+    }
+
     try {
-      const contract = new Contract(
-        [
-          {
-            name: "move",
-            type: "function",
-            inputs: [{ name: "direction", type: "felt252" }],
-            outputs: [],
-          },
-        ],
-        PACROYALE_ADDRESS,
-        provider
-      );
+      const calldata = {
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "move",
+        calldata: [direction]
+      };
 
-      const result = await contract.move(direction);
-      console.log("Moved:", result);
+      const tx = await account.execute(calldata);
+      await provider.waitForTransaction(tx.transaction_hash);
+      await fetchGameData();
     } catch (error) {
       console.error("Failed to move:", error);
     }
-  };
+  }, [account, provider, fetchGameData]);
 
   return (
     <>
