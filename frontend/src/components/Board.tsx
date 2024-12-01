@@ -3,10 +3,12 @@ import "./crt.css";
 import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
 import chompSoundFile from "../assets/pacman_chomp.wav";
 import beginningSoundFile from "../assets/pacman_beginning.wav";
+import deathSoundFile from "../assets/pacman_death.wav";
 
 const chompSound = new Audio(chompSoundFile);
 chompSound.loop = true;
 const beginningSound = new Audio(beginningSoundFile);
+const deathSound = new Audio(deathSoundFile);
 import PacmanImage from "../assets/pacman.gif";
 
 interface BoardProps {
@@ -104,6 +106,24 @@ const Board: React.FC<BoardProps> = ({
     });
   }, [playerPositions]);
 
+  useEffect(() => {
+    playerPositions.forEach((pos, playerIndex) => {
+      const [, , , isDead] = pos;
+      const prevPositions = previousPositions.get(playerIndex.toString());
+      
+      if (prevPositions) {
+        const prevIsDead = playerPositions[playerIndex]?.[3] ?? false;
+        
+        // If player just died (wasn't dead before but is dead now)
+        if (!prevIsDead && isDead) {
+          deathSound.play().catch((err) => {
+            console.warn("Error playing death sound:", err);
+          });
+        }
+      }
+    });
+  }, [playerPositions, previousPositions]);
+
   return (
     <div
       className="crt"
@@ -158,7 +178,13 @@ const Board: React.FC<BoardProps> = ({
                     flex: 1,
                     aspectRatio: "1/1",
                     backgroundColor:
-                      cell === 2 ? "black" : cell === 0 ? "black" : cell === 3 ? "black" : "blue",
+                      cell === 2
+                        ? "black"
+                        : cell === 0
+                        ? "black"
+                        : cell === 3
+                        ? "black"
+                        : "blue",
                     border: "1px solid #333",
                     position: "relative",
                   }}
@@ -200,14 +226,16 @@ const Board: React.FC<BoardProps> = ({
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const [, , isPoweredUp] = playerPositions[playerIndex];
+                          const [, , isPoweredUp] =
+                            playerPositions[playerIndex];
                           return isPoweredUp ? "140%" : "70%";
                         })(),
                         height: (() => {
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const [, , isPoweredUp] = playerPositions[playerIndex];
+                          const [, , isPoweredUp] =
+                            playerPositions[playerIndex];
                           return isPoweredUp ? "140%" : "70%";
                         })(),
                         top: "50%",
