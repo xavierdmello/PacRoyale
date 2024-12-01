@@ -22,53 +22,55 @@ mod PacRoyale {
         map: Vec<felt252>,
         player_map: Map<ContractAddress, Player>,
         players: Vec<ContractAddress>,
+        spawn_points: Vec<(u64, u64)>,
     }
 
     // Add player to the game
     fn add_player(ref self: ContractState) {
         let player_no = self.players.len();
-
+        let spawn_point = self.spawn_points.at(player_no).read();
+        let (x, y) = spawn_point;
         // Create new player
-        let player = Player { x: x, y: y};
-        self.player_map.entry(player_address).write(player);
-        self.players.append().write(player);
+        let player = Player { x, y};
+        self.player_map.entry(get_caller_address()).write(player);
+        self.players.append().write(get_caller_address());
     }
 
-    // Get player position by address
-    fn get_player_position(self: @ContractState, player_address: ContractAddress) -> Option<(u64, u64)> {
-        // Get player index from mapping
-        let index = self.player_indices.entry(player_address).read();
+    // // Get player position by address
+    // fn get_player_position(self: @ContractState, player_address: ContractAddress) -> Option<(u64, u64)> {
+    //     // Get player index from mapping
+    //     let index = self.player_indices.entry(player_address).read();
         
-        // Get player from vector using index
-        if let Option::Some(storage_ptr) = self.players.get(index) {
-            let player = storage_ptr.read();
-            return Option::Some((player.x, player.y));
-        }
+    //     // Get player from vector using index
+    //     if let Option::Some(storage_ptr) = self.players.get(index) {
+    //         let player = storage_ptr.read();
+    //         return Option::Some((player.x, player.y));
+    //     }
         
-        Option::None
-    }
+    //     Option::None
+    // }
 
-    // Update player position
-    fn update_player_position(
-        ref self: ContractState, 
-        player_address: ContractAddress, 
-        new_x: u64, 
-        new_y: u64
-    ) {
-        // Get player index
-        let index = self.player_indices.entry(player_address).read();
+    // // Update player position
+    // fn update_player_position(
+    //     ref self: ContractState, 
+    //     player_address: ContractAddress, 
+    //     new_x: u64, 
+    //     new_y: u64
+    // ) {
+    //     // Get player index
+    //     let index = self.player_indices.entry(player_address).read();
         
-        // Get current player data
-        let mut player_ptr = self.players.at(index);
-        let mut player = player_ptr.read();
+    //     // Get current player data
+    //     let mut player_ptr = self.players.at(index);
+    //     let mut player = player_ptr.read();
         
-        // Update position
-        player.x = new_x;
-        player.y = new_y;
+    //     // Update position
+    //     player.x = new_x;
+    //     player.y = new_y;
         
-        // Write back to storage
-        player_ptr.write(player);
-    }
+    //     // Write back to storage
+    //     player_ptr.write(player);
+    // }
 
     #[constructor]
     fn constructor(ref self: ContractState) {
@@ -108,6 +110,11 @@ mod PacRoyale {
             self.map.append().write(*initial_map.at(i));
             i += 1;
         };
+
+        self.spawn_points.append().write((1, 1));
+        self.spawn_points.append().write((21, 1));
+        self.spawn_points.append().write((1, 21));
+        self.spawn_points.append().write((21, 21));
     }
 
     // Get value at x,y coordinates from the 1D array representation
