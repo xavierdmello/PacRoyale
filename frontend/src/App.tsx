@@ -122,8 +122,7 @@ function App() {
           },
         ],
         PACROYALE_ADDRESS,
-        account,
-        { cairoVersion: "2" }
+        account
       );
 
       // Use CallData.compile to properly format the u64 argument
@@ -156,8 +155,7 @@ function App() {
           },
         ],
         PACROYALE_ADDRESS,
-        account,
-        { cairoVersion: "2" }
+        account
       );
 
       // Use CallData.compile to properly format both arguments
@@ -207,22 +205,12 @@ function App() {
         return;
       }
 
-      const contract = new Contract(
-        [
-          {
-            name: "init_game",
-            type: "function",
-            inputs: [],
-            outputs: [],
-            state_mutability: "external",
-          },
-        ],
-        PACROYALE_ADDRESS,
-        account,
-        { cairoVersion: "2" }
-      );
-
-      const result = await contract.init_game();
+      const result = await account.execute({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "init_game",
+        calldata: CallData.compile([])
+      });
+      
       console.log("Initialized game:", result);
     } catch (error) {
       console.error("Failed to initialize game:", error);
