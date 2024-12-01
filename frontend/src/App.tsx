@@ -237,17 +237,21 @@ function App() {
         setWinner(winnerAddress);
         console.log("Game over! Winner:", winnerAddress);
 
-        // Find the player number by matching the winner address with positions
-        const playerIndex = playerPositions.findIndex((_, index) => {
-          const playerAddress = playerPositions[index * 5 + 4]; // Get the address from position data
-          return playerAddress === winnerAddress;
+        // Find the winning player's index
+        const playerIndex = playerPositions.findIndex((pos, index) => {
+          // Get the balance from the position array
+          const [, , , , balance] = pos;
+          // Find the player with the highest balance (winner)
+          return balance > 0;
         });
 
         if (playerIndex !== -1) {
           setWinningPlayerNumber(playerIndex + 1); // Add 1 to make it 1-based
-          setWinningBalance(playerPositions[playerIndex * 5 + 4]); // Get the balance
+          const [, , , , balance] = playerPositions[playerIndex];
+          setWinningBalance(balance);
         }
 
+        // Show game over modal for all players
         setShowGameOverModal(true);
       }
     } catch (error) {
