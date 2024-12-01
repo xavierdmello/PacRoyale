@@ -12,11 +12,18 @@ import { useAccount } from "@starknet-react/core";
 function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
-  const [playerPositions, setPlayerPositions] = useState<[number, number][]>([]);
+  const [playerPositions, setPlayerPositions] = useState<[number, number][]>(
+    []
+  );
   const { address, account } = useAccount();
-  const provider = useMemo(() => new RpcProvider({
-    nodeUrl: "http://100.74.177.49:5050",
-  }), []);
+  const [gameId, setGameId] = useState(1);
+  const provider = useMemo(
+    () =>
+      new RpcProvider({
+        nodeUrl: "http://100.74.177.49:5050",
+      }),
+    []
+  );
 
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
@@ -25,20 +32,23 @@ function App() {
       const positionsResponse = await provider.callContract({
         contractAddress: PACROYALE_ADDRESS,
         entrypoint: "get_positions",
+        calldata: CallData.compile([gameId]),
       });
 
       if (positionsResponse) {
         console.log("Raw response:", positionsResponse);
+
+        // Skip the first element (array length) and process pairs of values
+        const positions: [number, number][] = [];
+        const positionData = positionsResponse.slice(1);
         
-        // Process pairs of values for x,y coordinates
-        const positions = [];
-        for (let i = 0; i < positionsResponse.length; i += 2) {
-          const x = Number(BigInt(positionsResponse[i]));
-          const y = Number(BigInt(positionsResponse[i + 1]));
+        for (let i = 0; i < positionData.length; i += 2) {
+          const x = Number(BigInt(positionData[i]));
+          const y = Number(BigInt(positionData[i + 1]));
           positions.push([x, y]);
         }
 
-        console.log('Processed positions:', positions);
+        console.log("Processed positions:", positions);
         setPlayerPositions(positions);
       }
     } catch (error) {
@@ -53,27 +63,29 @@ function App() {
     if (page === "board") {
       // Initial fetch
       fetchPlayerPositions();
-      
+
       intervalId = setInterval(fetchPlayerPositions, 1000); // Increased interval to 1 second
-      
+
       return () => clearInterval(intervalId);
     }
-  }, [page]); // Add fetchPlayerPositions to deps if needed
+  }, [page, gameId]); // Add fetchPlayerPositions to deps if needed
 
   // Modify board data fetching useEffect
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Remove provider creation from here since we're using the memoized one
         const boardResponse = await provider.callContract({
           contractAddress: PACROYALE_ADDRESS,
           entrypoint: "get_map",
+          calldata: CallData.compile([gameId]),
         });
 
+        console.log("Board response:", boardResponse);
         if (boardResponse) {
-          const parsedData = boardResponse.slice(1).map((hex: string) =>
-            parseInt(hex, 16)
-          );
+          // Skip the first element (array length) and parse the hex values
+          const parsedData = boardResponse
+            .slice(1)
+            .map((hex: string) => Number(BigInt(hex)));
           setBoardData(parsedData);
         }
       } catch (error) {
@@ -82,7 +94,7 @@ function App() {
     };
 
     fetchData();
-  }, []); // Add provider to deps if not memoized
+  }, [gameId, provider]);
 
   const handleAddPlayer = async () => {
     try {
@@ -96,18 +108,17 @@ function App() {
           {
             name: "add_player",
             type: "function",
-            inputs: [],
+            inputs: [{ name: "game_id", type: "u64" }],
             outputs: [{ name: "", type: "felt252" }],
             stateMutability: "external",
           },
-        ],  
+        ],
         PACROYALE_ADDRESS,
         account,
-        // @ts-ignore
         { cairoVersion: "2" }
       );
 
-      const result = await contract.add_player();
+      const result = await contract.add_player(gameId);
       console.log("Added player:", result);
     } catch (error) {
       console.error("Failed to add player:", error);
@@ -126,18 +137,20 @@ function App() {
           {
             name: "move",
             type: "function",
-            inputs: [{ name: "direction", type: "felt252" }],
+            inputs: [
+              { name: "game_id", type: "u64" },
+              { name: "direction", type: "felt252" }
+            ],
             outputs: [],
             state_mutability: "external",
           },
         ],
         PACROYALE_ADDRESS,
         account,
-        { cairoVersion: "1" }
+        { cairoVersion: "2" }
       );
 
-      const calldata = CallData.compile({ direction: direction });
-      const result = await contract.move(calldata);
+      const result = await contract.move(gameId, direction);
       console.log("Moved:", result);
     } catch (error) {
       console.error("Failed to move:", error);
@@ -146,12 +159,14 @@ function App() {
 
   return (
     <>
-      <DevWallet />
+      <DevWallet />{" "}
+      <button onClick={() => setGameId(gameId + 1)}>Next Game</button>
+      <button onClick={() => setGameId(gameId - 1)}>Previous Game</button>
       {page === "landing" && <LandingPage setPage={setPage} />}
       {page === "board" && (
         <div>
           <Board board={boardData} playerPositions={playerPositions} />
-          
+
           <div className="fixed right-4 top-20 flex flex-col gap-2">
             <button
               onClick={handleAddPlayer}
@@ -160,7 +175,7 @@ function App() {
             >
               Add Player
             </button>
-            
+
             <div className="grid grid-cols-3 gap-2 w-32">
               <div></div>
               <button
@@ -171,7 +186,7 @@ function App() {
                 ↑
               </button>
               <div></div>
-              
+
               <button
                 onClick={() => handleMove(2)}
                 className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
@@ -187,7 +202,7 @@ function App() {
               >
                 →
               </button>
-              
+
               <div></div>
               <button
                 onClick={() => handleMove(1)}
