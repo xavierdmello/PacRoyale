@@ -12,7 +12,7 @@ import { useAccount } from "@starknet-react/core";
 function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
-  const [playerPositions, setPlayerPositions] = useState<[number, number, boolean, boolean][]>([]);
+  const [playerPositions, setPlayerPositions] = useState<[number, number, boolean, boolean, number][]>([]);
   const { address, account } = useAccount();
   const [gameId, setGameId] = useState(1);
   const provider = useMemo(
@@ -38,16 +38,17 @@ function App() {
       if (positionsResponse) {
         console.log("Raw response:", positionsResponse);
 
-        // Skip the first element (array length) and process groups of 4 values
-        const positions: [number, number, boolean, boolean][] = [];
+        // Skip the first element (array length) and process groups of 5 values
+        const positions: [number, number, boolean, boolean, number][] = [];
         const positionData = positionsResponse.slice(1);
 
-        for (let i = 0; i < positionData.length; i += 4) {
+        for (let i = 0; i < positionData.length; i += 5) {
           const x = Number(BigInt(positionData[i]));
           const y = Number(BigInt(positionData[i + 1]));
           const isPoweredUp = Number(BigInt(positionData[i + 2])) === 1;
           const isDead = Number(BigInt(positionData[i + 3])) === 1;
-          positions.push([x, y, isPoweredUp, isDead]);
+          const balance = Number(BigInt(positionData[i + 4]));
+          positions.push([x, y, isPoweredUp, isDead, balance]);
         }
 
         console.log("Processed positions:", positions);
