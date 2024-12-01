@@ -24,6 +24,7 @@ function App() {
       }),
     []
   );
+  const [topGameId, setTopGameId] = useState(1);
 
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
@@ -41,7 +42,7 @@ function App() {
         // Skip the first element (array length) and process pairs of values
         const positions: [number, number][] = [];
         const positionData = positionsResponse.slice(1);
-        
+
         for (let i = 0; i < positionData.length; i += 2) {
           const x = Number(BigInt(positionData[i]));
           const y = Number(BigInt(positionData[i + 1]));
@@ -141,7 +142,7 @@ function App() {
             type: "function",
             inputs: [
               { name: "game_id", type: "u64" },
-              { name: "direction", type: "felt252" }
+              { name: "direction", type: "felt252" },
             ],
             outputs: [],
             state_mutability: "external",
@@ -161,30 +162,105 @@ function App() {
     }
   };
 
+  // Add new function to fetch top game ID
+  const fetchTopGameId = async () => {
+    try {
+      const response = await provider.callContract({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "get_top_game_id",
+        calldata: CallData.compile([]),
+      });
+
+      if (response && response.length > 0) {
+        const id = Number(BigInt(response[0]));
+        setTopGameId(id);
+      }
+    } catch (error) {
+      console.error("Failed to fetch top game ID:", error);
+    }
+  };
+
+  // Add new useEffect for polling top game ID
+  useEffect(() => {
+    // Initial fetch
+    fetchTopGameId();
+
+    // Set up interval
+    const intervalId = setInterval(fetchTopGameId, 1000);
+
+    // Cleanup
+    return () => clearInterval(intervalId);
+  }, [provider]); // Depend on provider
+
+  // Add new function to initialize game
+  const handleInitGame = async () => {
+    try {
+      if (!account) {
+        console.error("No account connected");
+        return;
+      }
+
+      const contract = new Contract(
+        [
+          {
+            name: "init_game",
+            type: "function",
+            inputs: [],
+            outputs: [],
+            stateMutability: "external",
+          },
+        ],
+        PACROYALE_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      const result = await contract.init_game();
+      console.log("Initialized game:", result);
+    } catch (error) {
+      console.error("Failed to initialize game:", error);
+    }
+  };
+
   return (
     <>
       <DevWallet />{" "}
       {page == "board" && (
         <div className="fixed left-4 top-20 flex flex-col gap-2 z-50">
           <div className="text-white">Game ID: {gameId}</div>
+          <div className="text-white">Top Game ID: {topGameId}</div>
           <button
-          onClick={() => setGameId(gameId + 1)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Next Game
-        </button>
-        <button 
-          onClick={() => setGameId(gameId - 1)}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Previous Game
-        </button>
+            onClick={() => setGameId(gameId + 1)}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Next Game
+          </button>
+          <button
+            onClick={() => setGameId(gameId - 1)}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Previous Game
+          </button>
+          {/* Add Init Game button that only shows when gameId is topGameId + 1 */}
+          {gameId === topGameId + 1 && (
+            <button
+              onClick={handleInitGame}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              disabled={!address}
+            >
+              Init Game
+            </button>
+          )}
         </div>
       )}
       {page === "landing" && <LandingPage setPage={setPage} />}
       {page === "board" && (
         <div>
-          <Board board={boardData} playerPositions={playerPositions} handleMove={handleMove} />
+          <Board
+            board={boardData}
+            playerPositions={playerPositions}
+            handleMove={handleMove}
+          />
 
           <div className="fixed right-4 top-20 flex flex-col gap-2">
             <button
