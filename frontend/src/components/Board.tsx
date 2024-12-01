@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import './crt.css';
 import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
+import chompSoundFile from "../assets/pacman_chomp.wav";
+import beginningSoundFile from "../assets/pacman_beginning.wav";
+
+const chompSound = new Audio(chompSoundFile);
+chompSound.loop = true;
+const beginningSound = new Audio(beginningSoundFile);
 import PacmanImage from "../assets/pacman.gif";
 
 interface BoardProps {
@@ -14,6 +20,21 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
   const [previousPositions, setPreviousPositions] = useState<Map<string, [number, number]>>(new Map());
   const [playerDirections, setPlayerDirections] = useState<Map<string, 'right' | 'left' | 'up' | 'down'>>(new Map());
   const lastMoveTime = useRef<number>(0);
+
+  useEffect(() => {
+    beginningSound.play().catch((err) => {
+      console.warn("Error playing beginning sound:", err);
+    });
+    
+    chompSound.play().catch((err) => {
+      console.warn("Error playing chomp sound:", err);
+    });
+
+    return () => {
+      chompSound.pause();
+      chompSound.currentTime = 0;
+    };
+  }, []);
 
   const debouncedHandleMove = useCallback((direction: number) => {
     const now = Date.now();
@@ -48,7 +69,7 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
   useEffect(() => {
     playerPositions.forEach((pos, playerIndex) => {
       const [x, y] = pos;
-      const prevPos = previousPositions.get(playerIndex);
+      const prevPos = previousPositions.get(playerIndex.toString());
       
       if (prevPos) {
         const [prevX, prevY] = prevPos;
@@ -60,12 +81,11 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
           else if (y > prevY) direction = 'down';
           else if (y < prevY) direction = 'up';
           
-          console.log(`Player ${playerIndex} moved from (${prevX},${prevY}) to (${x},${y}), direction: ${direction}`);
-          setPlayerDirections(prev => new Map(prev).set(playerIndex, direction));
+          setPlayerDirections(prev => new Map(prev).set(playerIndex.toString(), direction));
         }
       }
       
-      setPreviousPositions(prev => new Map(prev).set(playerIndex, [x, y]));
+      setPreviousPositions(prev => new Map(prev).set(playerIndex.toString(), [x, y]));
     });
   }, [playerPositions]);
 
@@ -159,7 +179,7 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const direction = playerDirections.get(playerIndex);
+                          const direction = playerDirections.get(playerIndex.toString());
                           console.log(`Rendering player ${playerIndex} at (${cellIndex},${rowIndex}) with direction ${direction}`);
                           
                           return `translate(-50%, -50%) rotate(${
