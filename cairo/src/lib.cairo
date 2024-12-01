@@ -1,11 +1,11 @@
 #[starknet::interface]
 trait IPacRoyale<TContractState> {
-    fn add_player(ref self: TContractState);
-    fn get_position(self: @TContractState) -> Array<u64>;
-    fn get_positions(self: @TContractState) -> Array<u64>;
-    fn move(ref self: TContractState, direction: felt252);
-    fn get_map_value(self: @TContractState, x: u64, y: u64) -> felt252;
-    fn get_map(self: @TContractState) -> Array<felt252>;
+    fn add_player(ref self: TContractState, game_id: u64);
+    fn get_position(self: @TContractState, game_id: u64) -> Array<u64>;
+    fn get_positions(self: @TContractState, game_id: u64) -> Array<u64>;
+    fn move(ref self: TContractState, game_id: u64, direction: felt252);
+    fn get_map_value(self: @TContractState, game_id: u64, x: u64, y: u64) -> felt252;
+    fn get_map(self: @TContractState, game_id: u64) -> Array<felt252>;
 }
 
 #[starknet::contract]
@@ -27,16 +27,15 @@ mod PacRoyale {
 
     #[storage]
     struct Storage {
-        balance: felt252,
-        map: Vec<felt252>,
-        player_map: Map<ContractAddress, Player>,
-        players: Vec<ContractAddress>,
-        spawn_points: Vec<(u64, u64)>,
+        map: Vec<Vec<felt252>>,
+        player_map: Vec<Map<ContractAddress, Player>>,
+        players: Vec<Vec<ContractAddress>>,
+        spawn_points: Vec<Vec<(u64, u64)>>,
     }
 
     #[abi(embed_v0)]
     impl PacRoyaleImpl of super::IPacRoyale<ContractState> {
-        fn add_player(ref self: ContractState) {
+        fn add_player(ref self: ContractState, game_id: u64) {
             let caller = get_caller_address();
             
             // Check if player already exists
@@ -45,32 +44,32 @@ mod PacRoyale {
                 if i >= self.players.len() {
                     break;
                 }
-                let player_address = self.players.at(i).read();
+                let player_address = self.players.at(game_id).at(i).read();
                 assert(player_address != caller, 'Player already exists');
                 i += 1;
             };
 
             let player_no = self.players.len();
             assert(player_no < 4, 'Game is full');
-            let spawn_point = self.spawn_points.at(player_no).read();
+            let spawn_point = self.spawn_points.at(game_id).at(player_no).read();
             let (x, y) = spawn_point;
 
             // Create new player
             let player = Player { x, y };
-            self.player_map.entry(caller).write(player);
-            self.players.append().write(caller);
+            self.player_map.at(game_id).entry(caller).write(player);
+            self.players.at(game_id).append().write(caller);
         }
 
-        fn get_position(self: @ContractState) -> Array<u64> {
+        fn get_position(self: @ContractState, game_id: u64) -> Array<u64> {
             let mut positions = ArrayTrait::new();
             let caller = get_caller_address();
-            let player = self.player_map.entry(caller).read();
+            let player = self.player_map.at(game_id).entry(caller).read();
             positions.append(player.x);
             positions.append(player.y);
             positions
         }
 
-        fn get_map(self: @ContractState) -> Array<felt252> {
+        fn get_map(self: @ContractState, game_id: u64) -> Array<felt252> {
             let mut map_array = ArrayTrait::new();
             let mut i: u64 = 0;
             
@@ -79,7 +78,7 @@ mod PacRoyale {
                     break;
                 }
                 
-                let value = self.map.at(i).read();
+                let value = self.map.at(game_id).at(i).read();
                 map_array.append(value);
                 
                 i += 1;
@@ -89,7 +88,7 @@ mod PacRoyale {
         }
 
         // Get all players positions
-        fn get_positions(self: @ContractState) -> Array<u64> {
+        fn get_positions(self: @ContractState, game_id: u64) -> Array<u64> {
             let mut positions = ArrayTrait::new();
             let mut i: u64 = 0;
             
@@ -98,8 +97,8 @@ mod PacRoyale {
                     break;
                 }
                 
-                let player_address = self.players.at(i.try_into().unwrap()).read();
-                let player = self.player_map.entry(player_address).read();
+                let player_address = self.players.at(game_id).at(i).read();
+                let player = self.player_map.at(game_id).entry(player_address).read();
                 positions.append(player.x);
                 positions.append(player.y);
                 
@@ -109,9 +108,9 @@ mod PacRoyale {
             positions
         }
 
-        fn move(ref self: ContractState, direction: felt252) {
+        fn move(ref self: ContractState, game_id: u64, direction: felt252) {
             let caller = get_caller_address();
-            let mut player = self.player_map.entry(caller).read();
+            let mut player = self.player_map.at(game_id).entry(caller).read();
             
             // Calculate new position based on direction
             let mut new_x = player.x;
@@ -132,15 +131,15 @@ mod PacRoyale {
             }
 
             // Check if the new position is a wall
-            let map_value = self.get_map_value(new_x, new_y);
+            let map_value = self.get_map_value(game_id, new_x, new_y);
             assert(map_value != 1, 'Cannot move into wall');
 
             // Update player position
             let new_player = Player { x: new_x, y: new_y };
-            self.player_map.entry(caller).write(new_player);
+            self.player_map.at(game_id).entry(caller).write(new_player);
         }
 
-        fn get_map_value(self: @ContractState, x: u64, y: u64) -> felt252 {
+        fn get_map_value(self: @ContractState, game_id: u64, x: u64, y: u64) -> felt252 {
             // Validate coordinates are within bounds
             assert(x < MAP_WIDTH, 'X coordinate out of bounds');
             assert(y < MAP_HEIGHT, 'Y coordinate out of bounds');
@@ -149,12 +148,13 @@ mod PacRoyale {
             let index = y * MAP_WIDTH + x;
             
             // Return value at calculated index
-            self.map.at(index).read()
+            self.map.at(game_id).at(index).read()
         }
     }
 
     #[constructor]
     fn constructor(ref self: ContractState) {
+        let game_id = 0;
         // Initialize the map with the Pac-Man maze layout
         let initial_map = array![
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -188,13 +188,13 @@ mod PacRoyale {
             if i >= initial_map.len() {
                 break;
             }
-            self.map.append().write(*initial_map.at(i));
+            self.map.at(game_id).append().write(*initial_map.at(i));
             i += 1;
         };
 
-        self.spawn_points.append().write((1, 1));
-        self.spawn_points.append().write((21, 1));
-        self.spawn_points.append().write((1, 21));
-        self.spawn_points.append().write((21, 21));
+        self.spawn_points.at(game_id).append().write((1, 1));
+        self.spawn_points.at(game_id).append().write((21, 1));
+        self.spawn_points.at(game_id).append().write((1, 21));
+        self.spawn_points.at(game_id).append().write((21, 21));
     }
 }
