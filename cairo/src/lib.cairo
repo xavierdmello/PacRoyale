@@ -25,6 +25,8 @@ mod PacRoyale {
     struct Player {
         x: u64,
         y: u64,
+        poweredUp: bool,
+        powerup_end: u64,  // Timestamp when powerup ends
     }
 
     #[storage]
@@ -57,8 +59,8 @@ mod PacRoyale {
             let spawn_point = self.spawn_points.entry(game_id).at(player_no).read();
             let (x, y) = spawn_point;
 
-            // Create new player
-            let player = Player { x, y };
+            // Create new player with default powerup values
+            let player = Player { x, y, poweredUp: false, powerup_end: 0 };
             self.player_map.entry(game_id).entry(caller).write(player);
             self.players.entry(game_id).append().write(caller);
         }
@@ -74,6 +76,7 @@ mod PacRoyale {
             let player = self.player_map.entry(game_id).entry(caller).read();
             positions.append(player.x);
             positions.append(player.y);
+            positions.append(if player.poweredUp { 1 } else { 0 });  // Convert bool to u64
             positions
         }
 
@@ -109,6 +112,7 @@ mod PacRoyale {
                 let player = self.player_map.entry(game_id).entry(player_address).read();
                 positions.append(player.x);
                 positions.append(player.y);
+                positions.append(if player.poweredUp { 1 } else { 0 });  // Convert bool to u64
                 
                 i += 1;
             };
@@ -119,6 +123,12 @@ mod PacRoyale {
         fn move(ref self: ContractState, game_id: u64, direction: felt252) {
             let caller = get_caller_address();
             let mut player = self.player_map.entry(game_id).entry(caller).read();
+
+            // Check if powerup expired
+            let current_time = starknet::get_block_timestamp();
+            if player.poweredUp && current_time > player.powerup_end {
+                player.poweredUp = false;
+            }
 
             // Calculate new position based on direction
             let mut new_x = player.x;
@@ -138,12 +148,27 @@ mod PacRoyale {
                 new_x += 1;
             }
 
-            // Check if the new position is a wall
+            // Check if the new position is a powerup
             let map_value = self.get_map_value(game_id, new_x, new_y);
-            assert(map_value != 1, 'Cannot move into wall');
+            if map_value == 3 {
+                // Set powerup
+                player.poweredUp = true;
+                player.powerup_end = current_time + 10; // 10 seconds from now
+                
+                // Clear powerup from map
+                let index = new_y * MAP_WIDTH + new_x;
+                self.map.entry(game_id).at(index).write(0);
+            } else {
+                assert(map_value != 1, 'Cannot move into wall');
+            }
 
             // Update player position
-            let new_player = Player { x: new_x, y: new_y };
+            let new_player = Player { 
+                x: new_x, 
+                y: new_y, 
+                poweredUp: player.poweredUp, 
+                powerup_end: player.powerup_end 
+            };
             self.player_map.entry(game_id).entry(caller).write(new_player);
         }
 
