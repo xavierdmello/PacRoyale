@@ -28,10 +28,10 @@ mod PacRoyale {
 
     #[storage]
     struct Storage {
-        map: Vec<Vec<felt252>>,
-        player_map: Vec<Map<ContractAddress, Player>>,
-        players: Vec<Vec<ContractAddress>>,
-        spawn_points: Vec<Vec<(u64, u64)>>,
+        map: Map<u64, Vec<felt252>>,
+        player_map: Map<u64, Map<ContractAddress, Player>>,
+        players: Map<u64, Vec<ContractAddress>>,
+        spawn_points: Map<u64, Vec<(u64, u64)>>,
         top_game_id: u64,
     }
 
@@ -43,29 +43,29 @@ mod PacRoyale {
             // Check if player already exists
             let mut i: u64 = 0;
             loop {
-                if i >= self.players.len() {
+                if i >= self.players.entry(game_id).len() {
                     break;
                 }
-                let player_address = self.players.at(game_id).at(i).read();
+                let player_address = self.players.entry(game_id).at(i).read();
                 assert(player_address != caller, 'Player already exists');
                 i += 1;
             };
 
-            let player_no = self.players.len();
+            let player_no = self.players.entry(game_id).len();
             assert(player_no < 4, 'Game is full');
-            let spawn_point = self.spawn_points.at(game_id).at(player_no).read();
+            let spawn_point = self.spawn_points.entry(game_id).at(player_no).read();
             let (x, y) = spawn_point;
 
             // Create new player
             let player = Player { x, y };
-            self.player_map.at(game_id).entry(caller).write(player);
-            self.players.at(game_id).append().write(caller);
+            self.player_map.entry(game_id).entry(caller).write(player);
+            self.players.entry(game_id).append().write(caller);
         }
 
         fn get_position(self: @ContractState, game_id: u64) -> Array<u64> {
             let mut positions = ArrayTrait::new();
             let caller = get_caller_address();
-            let player = self.player_map.at(game_id).entry(caller).read();
+            let player = self.player_map.entry(game_id).entry(caller).read();
             positions.append(player.x);
             positions.append(player.y);
             positions
@@ -76,11 +76,11 @@ mod PacRoyale {
             let mut i: u64 = 0;
             
             loop {
-                if i >= self.map.len() {
+                if i >= self.map.entry(game_id).len() {
                     break;
                 }
                 
-                let value = self.map.at(game_id).at(i).read();
+                let value = self.map.entry(game_id).at(i).read();
                 map_array.append(value);
                 
                 i += 1;
@@ -95,12 +95,12 @@ mod PacRoyale {
             let mut i: u64 = 0;
             
             loop {
-                if i >= self.players.len().into() {
+                if i >= self.players.entry(game_id).len() {
                     break;
                 }
                 
-                let player_address = self.players.at(game_id).at(i).read();
-                let player = self.player_map.at(game_id).entry(player_address).read();
+                let player_address = self.players.entry(game_id).at(i).read();
+                let player = self.player_map.entry(game_id).entry(player_address).read();
                 positions.append(player.x);
                 positions.append(player.y);
                 
@@ -112,8 +112,8 @@ mod PacRoyale {
 
         fn move(ref self: ContractState, game_id: u64, direction: felt252) {
             let caller = get_caller_address();
-            let mut player = self.player_map.at(game_id).entry(caller).read();
-            
+            let mut player = self.player_map.entry(game_id).entry(caller).read();
+
             // Calculate new position based on direction
             let mut new_x = player.x;
             let mut new_y = player.y;
@@ -138,7 +138,7 @@ mod PacRoyale {
 
             // Update player position
             let new_player = Player { x: new_x, y: new_y };
-            self.player_map.at(game_id).entry(caller).write(new_player);
+            self.player_map.entry(game_id).entry(caller).write(new_player);
         }
 
         fn get_map_value(self: @ContractState, game_id: u64, x: u64, y: u64) -> felt252 {
@@ -150,7 +150,7 @@ mod PacRoyale {
             let index = y * MAP_WIDTH + x;
             
             // Return value at calculated index
-            self.map.at(game_id).at(index).read()
+            self.map.entry(game_id).at(index).read()
         }
 
          fn init_game(ref self: ContractState) {
@@ -189,14 +189,14 @@ mod PacRoyale {
             if i >= initial_map.len() {
                 break;
             }
-            self.map.at(game_id).append().write(*initial_map.at(i));
+            self.map.entry(game_id).append().write(*initial_map.at(i));
             i += 1;
         };
     
-        self.spawn_points.at(game_id).append().write((1, 1));
-        self.spawn_points.at(game_id).append().write((21, 1));
-        self.spawn_points.at(game_id).append().write((1, 21));
-        self.spawn_points.at(game_id).append().write((21, 21));
+        self.spawn_points.entry(game_id).append().write((1, 1));
+        self.spawn_points.entry(game_id).append().write((21, 1));
+        self.spawn_points.entry(game_id).append().write((1, 21));
+        self.spawn_points.entry(game_id).append().write((21, 21));
     }
     }
 
