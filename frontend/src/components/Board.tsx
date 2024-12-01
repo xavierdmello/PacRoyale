@@ -1,15 +1,26 @@
 import React, { useEffect, useState, useRef } from "react";
 import './crt.css';
 import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
+import PacmanImage from "../assets/pacman.gif";
 
 interface BoardProps {
   board: number[];
   playerPositions: [number, number][];
 }
 
+const PLAYER_COLORS = [
+  '#FF0000', // Red
+  '#00FF00', // Green
+  '#00FFFF', // Cyan
+  '#FF00FF', // Magenta
+];
+
 const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
   const GRID_SIZE = 23;
   const [pacmanPos, setPacmanPos] = useState({ x: 11, y: 11 });
+  const [pacmanDirection, setPacmanDirection] = useState<'right' | 'left' | 'up' | 'down'>('right');
+  const [previousPositions, setPreviousPositions] = useState<Map<string, [number, number]>>(new Map());
+  const [playerDirections, setPlayerDirections] = useState<Map<string, 'right' | 'left' | 'up' | 'down'>>(new Map());
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -18,15 +29,19 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
         
         switch (e.key) {
           case "ArrowUp":
+            setPacmanDirection('up');
             newPos.y = Math.max(0, prev.y - 1);
             break;
           case "ArrowDown":
+            setPacmanDirection('down');
             newPos.y = Math.min(GRID_SIZE - 1, prev.y + 1);
             break;
           case "ArrowLeft":
+            setPacmanDirection('left');
             newPos.x = Math.max(0, prev.x - 1);
             break;
           case "ArrowRight":
+            setPacmanDirection('right');
             newPos.x = Math.min(GRID_SIZE - 1, prev.x + 1);
             break;
         }
@@ -37,6 +52,30 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, []);
+
+  useEffect(() => {
+    playerPositions.forEach((pos, playerIndex) => {
+      const [x, y] = pos;
+      const prevPos = previousPositions.get(playerIndex);
+      
+      if (prevPos) {
+        const [prevX, prevY] = prevPos;
+        if (x !== prevX || y !== prevY) {
+          let direction: 'right' | 'left' | 'up' | 'down' = 'right';
+          
+          if (x > prevX) direction = 'right';
+          else if (x < prevX) direction = 'left';
+          else if (y > prevY) direction = 'down';
+          else if (y < prevY) direction = 'up';
+          
+          console.log(`Player ${playerIndex} moved from (${prevX},${prevY}) to (${x},${y}), direction: ${direction}`);
+          setPlayerDirections(prev => new Map(prev).set(playerIndex, direction));
+        }
+      }
+      
+      setPreviousPositions(prev => new Map(prev).set(playerIndex, [x, y]));
+    });
+  }, [playerPositions]);
 
   return (
     <div 
@@ -85,13 +124,7 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                   style={{
                     flex: 1,
                     aspectRatio: "1/1",
-                    backgroundColor: isPlayer
-                      ? "red"
-                      : cell === 2
-                      ? "black"
-                      : cell === 0
-                      ? "black"
-                      : "blue",
+                    backgroundColor: cell === 2 ? "black" : cell === 0 ? "black" : "blue",
                     border: "1px solid #333",
                     position: "relative",
                   }}
@@ -111,17 +144,55 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                     />
                   )}
                   {isPacman && (
-                    <div
+                    <img
+                      src={PacmanImage}
                       style={{
                         position: "absolute",
                         width: "70%",
                         height: "70%",
-                        backgroundColor: "yellow",
-                        borderRadius: "50%",
                         top: "50%",
                         left: "50%",
-                        transform: "translate(-50%, -50%)",
+                        transform: `translate(-50%, -50%) rotate(${
+                          pacmanDirection === 'right' ? '0deg' :
+                          pacmanDirection === 'down' ? '90deg' :
+                          pacmanDirection === 'left' ? '180deg' :
+                          pacmanDirection === 'up' ? '270deg' : '0deg'
+                        })`,
                       }}
+                      alt="Pacman"
+                    />
+                  )}
+                  {isPlayer && (
+                    <img
+                      src={PacmanImage}
+                      style={{
+                        position: "absolute",
+                        width: "70%",
+                        height: "70%",
+                        top: "50%",
+                        left: "50%",
+                        filter: `hue-rotate(${(() => {
+                          const playerIndex = playerPositions.findIndex(
+                            ([px, py]) => px === cellIndex && py === rowIndex
+                          );
+                          return playerIndex >= 0 ? `${(playerIndex * 90) % 360}deg` : '0deg';
+                        })()})`,
+                        transform: (() => {
+                          const playerIndex = playerPositions.findIndex(
+                            ([px, py]) => px === cellIndex && py === rowIndex
+                          );
+                          const direction = playerDirections.get(playerIndex);
+                          console.log(`Rendering player ${playerIndex} at (${cellIndex},${rowIndex}) with direction ${direction}`);
+                          
+                          return `translate(-50%, -50%) rotate(${
+                            direction === 'right' ? '0deg' :
+                            direction === 'down' ? '90deg' :
+                            direction === 'left' ? '180deg' :
+                            direction === 'up' ? '270deg' : '0deg'
+                          })`;
+                        })()
+                      }}
+                      alt="Player"
                     />
                   )}
                 </div>
