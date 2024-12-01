@@ -6,6 +6,7 @@ trait IPacRoyale<TContractState> {
     fn move(ref self: TContractState, game_id: u64, direction: felt252);
     fn get_map_value(self: @TContractState, game_id: u64, x: u64, y: u64) -> felt252;
     fn get_map(self: @TContractState, game_id: u64) -> Array<felt252>;
+    fn init_game(ref self: TContractState);
 }
 
 #[starknet::contract]
@@ -31,6 +32,7 @@ mod PacRoyale {
         player_map: Vec<Map<ContractAddress, Player>>,
         players: Vec<Vec<ContractAddress>>,
         spawn_points: Vec<Vec<(u64, u64)>>,
+        top_game_id: u64,
     }
 
     #[abi(embed_v0)]
@@ -150,11 +152,11 @@ mod PacRoyale {
             // Return value at calculated index
             self.map.at(game_id).at(index).read()
         }
-    }
 
-    #[constructor]
-    fn constructor(ref self: ContractState) {
-        let game_id = 0;
+         fn init_game(ref self: ContractState) {
+        let game_id = self.top_game_id.read() + 1;
+        self.top_game_id.write(game_id);
+
         // Initialize the map with the Pac-Man maze layout
         let initial_map = array![
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -182,7 +184,6 @@ mod PacRoyale {
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
         ];
 
-        // Convert the array to a Vec and store it
         let mut i: usize = 0;
         loop {
             if i >= initial_map.len() {
@@ -191,10 +192,18 @@ mod PacRoyale {
             self.map.at(game_id).append().write(*initial_map.at(i));
             i += 1;
         };
-
+    
         self.spawn_points.at(game_id).append().write((1, 1));
         self.spawn_points.at(game_id).append().write((21, 1));
         self.spawn_points.at(game_id).append().write((1, 21));
         self.spawn_points.at(game_id).append().write((21, 21));
     }
+    }
+
+    #[constructor]
+    fn constructor(ref self: ContractState) {
+        self.init_game();
+    }
+
+   
 }
