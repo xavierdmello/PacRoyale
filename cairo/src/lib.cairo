@@ -38,41 +38,7 @@ mod PacRoyale {
         self.players.append().write(get_caller_address());
     }
 
-    // // Get player position by address
-    // fn get_player_position(self: @ContractState, player_address: ContractAddress) -> Option<(u64, u64)> {
-    //     // Get player index from mapping
-    //     let index = self.player_indices.entry(player_address).read();
-        
-    //     // Get player from vector using index
-    //     if let Option::Some(storage_ptr) = self.players.get(index) {
-    //         let player = storage_ptr.read();
-    //         return Option::Some((player.x, player.y));
-    //     }
-        
-    //     Option::None
-    // }
-
-    // // Update player position
-    // fn update_player_position(
-    //     ref self: ContractState, 
-    //     player_address: ContractAddress, 
-    //     new_x: u64, 
-    //     new_y: u64
-    // ) {
-    //     // Get player index
-    //     let index = self.player_indices.entry(player_address).read();
-        
-    //     // Get current player data
-    //     let mut player_ptr = self.players.at(index);
-    //     let mut player = player_ptr.read();
-        
-    //     // Update position
-    //     player.x = new_x;
-    //     player.y = new_y;
-        
-    //     // Write back to storage
-    //     player_ptr.write(player);
-    // }
+ 
 
     #[constructor]
     fn constructor(ref self: ContractState) {
