@@ -1,7 +1,7 @@
 import { useAccount, useConnect, useBalance } from "@starknet-react/core";
-import { Connector, ConnectorData } from "@starknet-react/core";
+import { Connector, ConnectArgs } from "@starknet-react/core";
 import { AccountInterface, ProviderInterface } from "starknet";
-import { RpcProvider, Account } from "starknet";
+import { RpcProvider, Account, constants } from "starknet";
 import { useEffect, useState } from "react";
 
 const PREFUNDED_ACCOUNTS = [
@@ -32,6 +32,15 @@ const PREFUNDED_ACCOUNTS = [
   // ... add more accounts as needed
 ];
 
+// Mock wallet options
+const MOCK_WALLETS = [
+  { name: "Argent X", address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
+  { name: "Braavos", address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac" },
+  { name: "MyStarkWallet", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
+  { name: "OKX", address: "0x2f318C334780961FB129D2a6c30D0763d9a5C970" },
+  { name: "Starknet.js", address: "0x6b175474e89094c44da98b954eedeac495271d0f" }
+];
+
 class DevnetConnector extends Connector {
   private accountInstance: Account | null = null;
   private provider: RpcProvider;
@@ -41,7 +50,7 @@ class DevnetConnector extends Connector {
     super();
     this.provider = new RpcProvider({
       nodeUrl: "http://localhost:5050",
-      chainId: "0x534e5f474f45524c49"
+      chainId: constants.StarknetChainId.SN_GOERLI
     });
     this.selectedAccount = account;
   }
@@ -54,7 +63,7 @@ class DevnetConnector extends Connector {
     return true;
   }
 
-  async connect(): Promise<ConnectorData> {
+  async connect(args?: ConnectArgs): Promise<{ account: string; chainId: bigint }> {
     console.log("Connecting to devnet...");
     this.accountInstance = new Account(
       this.provider,
@@ -67,7 +76,7 @@ class DevnetConnector extends Connector {
 
     return {
       account: this.accountInstance.address,
-      chainId: chainId
+      chainId: BigInt(chainId)
     };
   }
 
@@ -82,7 +91,8 @@ class DevnetConnector extends Connector {
 
   async chainId(): Promise<bigint> {
     if (!this.accountInstance) throw new Error("Not connected");
-    return await this.provider.getChainId();
+    const chainId = await this.provider.getChainId();
+    return BigInt(chainId);
   }
 
   async request<T extends any>(call: any): Promise<T> {
@@ -108,80 +118,84 @@ class DevnetConnector extends Connector {
 export function DevWallet() {
   const { connect } = useConnect();
   const { address } = useAccount();
-  const [rawBalance, setRawBalance] = useState<string>('');
-  const [selectedAccountIndex, setSelectedAccountIndex] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { data: balance } = useBalance({
     address,
     watch: true
   });
 
-  const connectDevnet = async (accountIndex: number) => {
-    const connector = new DevnetConnector(PREFUNDED_ACCOUNTS[accountIndex]);
+  const truncateAddress = (addr: string) => {
+    if (!addr) return "";
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const connectWallet = async (walletIndex: number) => {
+    const connector = new DevnetConnector(PREFUNDED_ACCOUNTS[walletIndex]);
     try {
       await connect({ connector });
+      setIsDropdownOpen(false);
     } catch (error) {
       console.error("Failed to connect:", error);
     }
   };
 
-  useEffect(() => {
-    if (!address) {
-      connectDevnet(selectedAccountIndex);
-    }
-  }, [connect, address, selectedAccountIndex]);
-
-  useEffect(() => {
-    const checkBalance = async () => {
-      if (address) {
-        try {
-          const provider = new RpcProvider({
-            nodeUrl: "http://localhost:5050",
-          });
-          const response = await provider.callContract({
-            contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-            entrypoint: "balanceOf",
-            calldata: [address]
-          });
-          console.log("Raw balance response:", response);
-          setRawBalance(response.result[0]);
-        } catch (error) {
-          console.error("Failed to get balance:", error);
-        }
-      }
-    };
-
-    checkBalance();
-  }, [address]);
-
-  const handleAccountChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newIndex = parseInt(event.target.value);
-    setSelectedAccountIndex(newIndex);
-    await connectDevnet(newIndex);
+  const handleDisconnect = async () => {
+    window.location.reload();
   };
 
   return (
-    <div>
-      <select 
-        value={selectedAccountIndex} 
-        onChange={handleAccountChange}
-        style={{ marginBottom: '1rem', padding: '0.5rem' }}
-      >
-        {PREFUNDED_ACCOUNTS.map((account, index) => (
-          <option key={account.address} value={index}>
-            Account {index + 1}: {account.address.substring(0, 10)}...
-          </option>
-        ))}
-      </select>
+    <nav className="flex justify-between items-center px-8 py-4 bg-gray-900 text-white shadow-md">
+      <div className="text-xl font-bold">
+        PacRoyale
+      </div>
 
-      {address ? (
-        <div>
-          <p>Connected: {address}</p>
-          <p>Balance from hook: {balance?.formatted} {balance?.symbol}</p>
-          <p>Raw balance: {rawBalance} WEI</p>
-        </div>
-      ) : (
-        <p>Connecting to devnet...</p>
-      )}
-    </div>
+      <div className="flex items-center gap-4">
+        {address ? (
+          <>
+            <div className="flex items-center gap-2 bg-gray-800 px-4 py-2 rounded-lg">
+              <span className="text-gray-400">
+                {balance?.formatted || '0'} {balance?.symbol || 'ETH'}
+              </span>
+              <span className="text-white">
+                {truncateAddress(address)}
+              </span>
+            </div>
+            <button
+              onClick={handleDisconnect}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Disconnect
+            </button>
+          </>
+        ) : (
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              Connect Wallet
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute top-full right-0 mt-2 bg-gray-800 rounded-lg shadow-lg w-64 z-10">
+                {MOCK_WALLETS.map((wallet, index) => (
+                  <div
+                    key={wallet.address}
+                    onClick={() => connectWallet(index)}
+                    className={`p-4 cursor-pointer hover:bg-gray-700 transition-colors
+                      ${index !== MOCK_WALLETS.length - 1 ? 'border-b border-gray-700' : ''}`}
+                  >
+                    <div className="font-medium">{wallet.name}</div>
+                    <div className="text-sm text-gray-400">
+                      {truncateAddress(wallet.address)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </nav>
   );
 }
