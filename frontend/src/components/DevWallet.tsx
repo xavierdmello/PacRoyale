@@ -37,11 +37,11 @@ const PREFUNDED_ACCOUNTS = [
 
 // Mock wallet options
 const MOCK_WALLETS = [
-  { name: "Argent X", address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
-  { name: "Braavos", address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac" },
-  { name: "MyStarkWallet", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
-  { name: "OKX", address: "0x2f318C334780961FB129D2a6c30D0763d9a5C970" },
-  { name: "Starknet.js", address: "0x6b175474e89094c44da98b954eedeac495271d0f" }
+  { name: "Wallet 1", address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
+  { name: "Wallet 2", address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac" },
+  { name: "Wallet 3", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
+  { name: "Wallet 4", address: "0x2f318C334780961FB129D2a6c30D0763d9a5C970" },
+  { name: "Wallet 5", address: "0x6b175474e89094c44da98b954eedeac495271d0f" }
 ];
 
 class DevnetConnector extends Connector {
