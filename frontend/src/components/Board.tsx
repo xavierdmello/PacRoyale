@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import './crt.css';
 
 interface BoardProps {
   board: number[];
@@ -37,21 +38,24 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
   }, []);
 
   return (
-    <div style={{ 
-      display: "flex", 
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "100%",
-      height: "calc(100vh - 64px)",
-      backgroundColor: "#000",
-      padding: "8px",
-      boxSizing: "border-box",
-      overflow: "hidden",
-      position: "fixed",
-      top: "64px",
-      left: 0,
-    }}>
+    <div 
+      className="crt"
+      style={{ 
+        display: "flex", 
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        height: "calc(100vh - 64px)",
+        backgroundColor: "#000",
+        padding: "8px",
+        boxSizing: "border-box",
+        overflow: "hidden",
+        position: "fixed",
+        top: "64px",
+        left: 0,
+        animation: "textShadow 1.6s infinite",
+      }}>
       <div style={{
         width: "min(75vh, 75vw)",
         height: "min(75vh, 75vw)",
