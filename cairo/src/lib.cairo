@@ -46,25 +46,25 @@ mod PacRoyale {
         (player.x, player.y)
     }
 
-    // #[external(v0)]
-    // fn get_all_positions(self: @ContractState) -> Array<(ContractAddress, (u64, u64))> {
-    //     let mut positions = ArrayTrait::new();
-    //     let mut i: usize = 0;
+    #[external(v0)]
+    fn get_positions(self: @ContractState) -> Array<(u64, u64)> {
+        let mut positions = ArrayTrait::new();
+        let mut i: usize = 0;
         
-    //     loop {
-    //         if i >= self.players.len() {
-    //             break;
-    //         }
+        loop {
+            if i >= self.players.len() {
+                break;
+            }
             
-    //         let player_address = self.players.at(i).read();
-    //         let player = self.player_map.get(player_address).unwrap();
-    //         positions.append((player_address, (player.x, player.y)));
+            let player_address = self.players.at(i);
+            let player = self.player_map.entry(player_address).read();
+            positions.append((player.x, player.y));
             
-    //         i += 1;
-    //     };
+            i += 1;
+        };
         
-    //     positions
-    // }
+        positions
+    }
 
     #[constructor]
     fn constructor(ref self: ContractState) {
