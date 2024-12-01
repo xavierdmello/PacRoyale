@@ -1,7 +1,7 @@
 import { useAccount, useConnect, useBalance } from "@starknet-react/core";
 import { Connector, ConnectArgs } from "@starknet-react/core";
 import { AccountInterface, ProviderInterface } from "starknet";
-import { RpcProvider, Account, constants } from "starknet";
+import { RpcProvider, Account, Contract, CallData, constants } from "starknet";
 import { useEffect, useState } from "react";
 import SwapModal from "./SwapModal";
 import { PACROYALE_ADDRESS, PACTOKEN_ADDRESS, USDC_ADDRESS } from "./ContractAddresses";
@@ -120,7 +120,7 @@ class DevnetConnector extends Connector {
 
 export function DevWallet() {
   const { connect } = useConnect();
-  const { address } = useAccount();
+  const { address, account } = useAccount();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   // Add balance hooks for both tokens
@@ -160,7 +160,168 @@ export function DevWallet() {
     window.location.reload();
   };
 
+  // Add new functions for token operations
+  const mintUSDC = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      const contract = new Contract(
+        [
+          {
+            name: "mint",
+            type: "function",
+            inputs: [{ name: "amount", type: "u256" }],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        USDC_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
 
+      const result = await contract.mint(CallData.compile([amount]));
+      console.log("Minted USDC:", result);
+    } catch (error) {
+      console.error("Failed to mint USDC:", error);
+    }
+  };
+
+  const burnUSDC = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      const contract = new Contract(
+        [
+          {
+            name: "burn",
+            type: "function",
+            inputs: [{ name: "amount", type: "u256" }],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        USDC_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      const result = await contract.burn(CallData.compile([amount]));
+      console.log("Burned USDC:", result);
+    } catch (error) {
+      console.error("Failed to burn USDC:", error);
+    }
+  };
+
+  const mintPAC = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      const contract = new Contract(
+        [
+          {
+            name: "mint",
+            type: "function",
+            inputs: [{ name: "amount", type: "u256" }],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        PACTOKEN_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      const result = await contract.mint(CallData.compile([amount]));
+      console.log("Minted PAC:", result);
+    } catch (error) {
+      console.error("Failed to mint PAC:", error);
+    }
+  };
+
+  const burnPAC = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      const contract = new Contract(
+        [
+          {
+            name: "burn",
+            type: "function",
+            inputs: [{ name: "amount", type: "u256" }],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        PACTOKEN_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      const result = await contract.burn(CallData.compile([amount]));
+      console.log("Burned PAC:", result);
+    } catch (error) {
+      console.error("Failed to burn PAC:", error);
+    }
+  };
+
+  const approveUSDCForPAC = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      const contract = new Contract(
+        [
+          {
+            name: "approve",
+            type: "function",
+            inputs: [
+              { name: "spender", type: "ContractAddress" },
+              { name: "amount", type: "u256" }
+            ],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        USDC_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      const result = await contract.approve(CallData.compile([PACTOKEN_ADDRESS, amount]));
+      console.log("Approved USDC for PAC:", result);
+    } catch (error) {
+      console.error("Failed to approve USDC:", error);
+    }
+  };
+
+  const approvePACForGame = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      const contract = new Contract(
+        [
+          {
+            name: "approve",
+            type: "function",
+            inputs: [
+              { name: "spender", type: "ContractAddress" },
+              { name: "amount", type: "u256" }
+            ],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        PACTOKEN_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      const result = await contract.approve(CallData.compile([PACROYALE_ADDRESS, amount]));
+      console.log("Approved PAC for game:", result);
+    } catch (error) {
+      console.error("Failed to approve PAC:", error);
+    }
+  };
 
   return (
     <nav className="flex justify-between items-center px-8 py-4 bg-gray-900 text-white shadow-md">
@@ -187,6 +348,32 @@ export function DevWallet() {
                 <span className="text-gray-400">
                   {usdcBalance?.formatted || '0'} USDC
                 </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => mintUSDC(1000)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-lg text-sm"
+                >
+                  Mint USDC
+                </button>
+                <button
+                  onClick={() => approveUSDCForPAC(1000)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg text-sm"
+                >
+                  Approve USDC
+                </button>
+                <button
+                  onClick={() => mintPAC(1000)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded-lg text-sm"
+                >
+                  Mint PAC
+                </button>
+                <button
+                  onClick={() => approvePACForGame(1000)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-lg text-sm"
+                >
+                  Approve PAC
+                </button>
               </div>
               <span className="text-white">
                 {truncateAddress(address)}

@@ -33,10 +33,12 @@ mod USDC {
         self.erc20.initializer(name, symbol);
     }
 
+    #[external(v0)]
     fn mint(ref self: ContractState,  amount: u256) {
         self.erc20.mint(get_caller_address(), amount);
     }
 
+    #[external(v0)]
     fn burn(ref self: ContractState, amount: u256) {    
         self.erc20.burn(get_caller_address(), amount);
     }
