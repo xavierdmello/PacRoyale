@@ -214,8 +214,8 @@ function App() {
         account,
         { cairoVersion: "2" }
       );
-
-      const result = await contract.init_game();
+      const calldata = CallData.compile([]);
+      const result = await contract.init_game(calldata);
       console.log("Initialized game:", result);
     } catch (error) {
       console.error("Failed to initialize game:", error);
