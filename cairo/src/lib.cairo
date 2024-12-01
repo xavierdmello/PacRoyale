@@ -87,8 +87,9 @@ mod PacRoyale {
             let player = self.player_map.entry(game_id).entry(caller).read();
             positions.append(player.x);
             positions.append(player.y);
-            positions.append(if player.poweredUp { 1 } else { 0 });  // Convert bool to u64
-            positions.append(if player.isDead { 1 } else { 0 });  // Add isDead status
+            positions.append(if player.poweredUp { 1 } else { 0 });
+            positions.append(if player.isDead { 1 } else { 0 });
+            positions.append(player.balance);
             positions
         }
 
@@ -124,8 +125,9 @@ mod PacRoyale {
                 let player = self.player_map.entry(game_id).entry(player_address).read();
                 positions.append(player.x);
                 positions.append(player.y);
-                positions.append(if player.poweredUp { 1 } else { 0 });  // Convert bool to u64
-                positions.append(if player.isDead { 1 } else { 0 });  // Add isDead status
+                positions.append(if player.poweredUp { 1 } else { 0 });
+                positions.append(if player.isDead { 1 } else { 0 });
+                positions.append(player.balance);
                 
                 i += 1;
             };
