@@ -405,7 +405,7 @@ export function DevWallet() {
                 
                 {/* Dropdown positioned relative to button */}
                 <div 
-                  className="absolute bg-gray-800 rounded-lg shadow-lg w-64"
+                  className="absolute bg-gray-800 rounded-lg shadow-lg w-64 text-white"
                   style={{
                     top: '4rem',  // Adjust based on your navbar height
                     right: '2rem' // Adjust based on your desired positioning
@@ -418,7 +418,7 @@ export function DevWallet() {
                       className={`p-4 cursor-pointer hover:bg-gray-700 transition-colors
                         ${index !== MOCK_WALLETS.length - 1 ? 'border-b border-gray-700' : ''}`}
                     >
-                      <div className="font-medium">{wallet.name}</div>
+                      <div className="font-medium text-white">{wallet.name}</div>
                       <div className="text-sm text-gray-400">
                         {truncateAddress(wallet.address)}
                       </div>
