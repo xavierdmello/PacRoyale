@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import './crt.css';
+import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
 
 interface BoardProps {
   board: number[];
@@ -47,7 +48,6 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
         justifyContent: "center",
         width: "100%",
         height: "calc(100vh - 64px)",
-        backgroundColor: "#000",
         padding: "8px",
         boxSizing: "border-box",
         overflow: "hidden",
@@ -55,6 +55,11 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
         top: "64px",
         left: 0,
         animation: "textShadow 1.6s infinite",
+        backgroundColor: "#000",
+        backgroundImage: `url(${SkinOverlay})`,
+        backgroundSize: "cover", // Ensures the image covers the entire div
+        backgroundPosition: "center", // Centers the image
+        backgroundRepeat: "no-repeat", // Prevents tiling
       }}>
       <div style={{
         width: "min(75vh, 75vw)",
