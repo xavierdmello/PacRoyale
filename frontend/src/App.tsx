@@ -32,11 +32,31 @@ const pacRoyaleAbi = [
 
 
 function App() {
+  const [page, setPage] = useState("landing");
+  const { data: mapData } = useReadContract({
+    address: PACROYALE_ADDRESS,
+    abi: pacRoyaleAbi,
+    functionName: "get_map",
+  });
+
+  const { data: sampleMapValue } = useReadContract({
+    address: PACROYALE_ADDRESS,
+    abi: pacRoyaleAbi,
+    functionName: "get_map_value",
+    args: [0, 0]
+  });
+
+  console.log("Map data:", mapData);
+  console.log("Sample map value at (0,0):", sampleMapValue);
+
   return (
-    <div className="overflow-x-hidden w-full">
-      <LandingPage/>
-    </div>
-  )
+    <>
+      <DevWallet />
+      {page === "landing" && <LandingPage />}
+      {/* Pass the map data to the Board component */}
+      {page === "board" && <Board board={mapData} />}
+    </>
+  );
 }
 
 export default App;
