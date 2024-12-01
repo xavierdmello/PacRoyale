@@ -5,7 +5,6 @@ trait IPacRoyale<TContractState> {
     fn get_positions(self: @TContractState) -> Array<(u64, u64)>;
     fn move(ref self: TContractState, direction: felt252);
     fn get_map_value(self: @TContractState, x: u64, y: u64) -> felt252;
-    fn set_map_value(ref self: TContractState, x: u64, y: u64, value: felt252);
 }
 
 #[starknet::contract]
@@ -114,13 +113,6 @@ mod PacRoyale {
             
             // Return value at calculated index
             self.map.at(index).read()
-        }
-
-        fn set_map_value(ref self: ContractState, x: u64, y: u64, value: felt252) {
-            // Validate coordinates are within bounds
-            assert(x < MAP_WIDTH, 'X coordinate out of bounds');
-            assert(y < MAP_HEIGHT, 'Y coordinate out of bounds');
-            self.map.at(y * MAP_WIDTH + x).write(value);
         }
     }
 
