@@ -5,6 +5,7 @@ import { RpcProvider, Account, constants } from "starknet";
 import { useEffect, useState } from "react";
 import SwapModal from "./SwapModal";
 import { PACROYALE_ADDRESS, PACTOKEN_ADDRESS, USDC_ADDRESS } from "./ContractAddresses";
+import { createPortal } from 'react-dom';
 
 const PREFUNDED_ACCOUNTS = [
   {
@@ -207,22 +208,38 @@ export function DevWallet() {
               Connect Wallet
             </button>
             
-            {isDropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 bg-gray-800 rounded-lg shadow-lg w-64 z-10">
-                {MOCK_WALLETS.map((wallet, index) => (
-                  <div
-                    key={wallet.address}
-                    onClick={() => connectWallet(index)}
-                    className={`p-4 cursor-pointer hover:bg-gray-700 transition-colors
-                      ${index !== MOCK_WALLETS.length - 1 ? 'border-b border-gray-700' : ''}`}
-                  >
-                    <div className="font-medium">{wallet.name}</div>
-                    <div className="text-sm text-gray-400">
-                      {truncateAddress(wallet.address)}
+            {isDropdownOpen && createPortal(
+              <div className="fixed inset-0 z-[100]">
+                {/* Backdrop */}
+                <div 
+                  className="absolute inset-0 bg-black/20" 
+                  onClick={() => setIsDropdownOpen(false)}
+                />
+                
+                {/* Dropdown positioned relative to button */}
+                <div 
+                  className="absolute bg-gray-800 rounded-lg shadow-lg w-64"
+                  style={{
+                    top: '4rem',  // Adjust based on your navbar height
+                    right: '2rem' // Adjust based on your desired positioning
+                  }}
+                >
+                  {MOCK_WALLETS.map((wallet, index) => (
+                    <div
+                      key={wallet.address}
+                      onClick={() => connectWallet(index)}
+                      className={`p-4 cursor-pointer hover:bg-gray-700 transition-colors
+                        ${index !== MOCK_WALLETS.length - 1 ? 'border-b border-gray-700' : ''}`}
+                    >
+                      <div className="font-medium">{wallet.name}</div>
+                      <div className="text-sm text-gray-400">
+                        {truncateAddress(wallet.address)}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </div>,
+              document.body
             )}
           </div>
         )}
