@@ -1,3 +1,6 @@
+
+
+
 /// Simple contract for managing balance.
 #[starknet::contract]
 mod PacRoyale {
@@ -49,14 +52,14 @@ mod PacRoyale {
     #[external(v0)]
     fn get_positions(self: @ContractState) -> Array<(u64, u64)> {
         let mut positions = ArrayTrait::new();
-        let mut i: usize = 0;
+        let mut i: u64 = 0;
         
         loop {
-            if i >= self.players.len() {
+            if i >= self.players.len().into() {
                 break;
             }
             
-            let player_address = self.players.at(i);
+            let player_address = self.players.at(i.try_into().unwrap()).read();
             let player = self.player_map.entry(player_address).read();
             positions.append((player.x, player.y));
             
@@ -64,6 +67,40 @@ mod PacRoyale {
         };
         
         positions
+    }
+
+
+    // 0 = up, 1 = down, 2 = left, 3 = right
+    #[external(v0)]
+    fn move(ref self: ContractState, direction: felt252) {
+        let caller = get_caller_address();
+        let mut player = self.player_map.entry(caller).read();
+        
+        // Calculate new position based on direction
+        let mut new_x = player.x;
+        let mut new_y = player.y;
+        
+        if direction == 0 {
+            assert(new_y > 0, 'Cannot move up');
+            new_y -= 1;
+        } else if direction == 1 {
+            assert(new_y < MAP_HEIGHT - 1, 'Cannot move down');
+            new_y += 1;
+        } else if direction == 2 {
+            assert(new_x > 0, 'Cannot move left');
+            new_x -= 1;
+        } else if direction == 3 {
+            assert(new_x < MAP_WIDTH - 1, 'Cannot move right');
+            new_x += 1;
+        }
+
+        // Check if the new position is a wall
+        let map_value = self.get_map_value(new_x, new_y);
+        assert(map_value != 1, 'Cannot move into wall');
+
+        // Update player position
+        let new_player = Player { x: new_x, y: new_y };
+        self.player_map.entry(caller).write(new_player);
     }
 
     #[constructor]
@@ -112,7 +149,7 @@ mod PacRoyale {
     }
 
     // Get value at x,y coordinates from the 1D array representation
-    #[external(v0)]
+
     fn get_map_value(self: @ContractState, x: u64, y: u64) -> felt252 {
         // Validate coordinates are within bounds
         assert(x < MAP_WIDTH, 'X coordinate out of bounds');
