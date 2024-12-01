@@ -7,8 +7,7 @@ interface BoardProps {
 
 const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
   const GRID_SIZE = 23;
-
-  const [pacmanPos, setPacmanPos] = useState({ x: 11, y: 11 }); // Start in middle
+  const [pacmanPos, setPacmanPos] = useState({ x: 11, y: 11 });
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -37,78 +36,91 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, []);
 
-
-  console.log("Player positions:", playerPositions);
-
   return (
     <div style={{ 
       display: "flex", 
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      minHeight: "100vh"
+      width: "100%",
+      height: "calc(100vh - 64px)",
+      backgroundColor: "#000",
+      padding: "8px",
+      boxSizing: "border-box",
+      overflow: "hidden",
+      position: "fixed",
+      top: "64px",
+      left: 0,
     }}>
-      {[...Array(GRID_SIZE)].map((_, rowIndex) => (
-        <div key={rowIndex} style={{ display: "flex" }}>
-          {[...Array(GRID_SIZE)].map((_, cellIndex) => {
-            const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
+      <div style={{
+        width: "min(75vh, 75vw)",
+        height: "min(75vh, 75vw)",
+        display: "flex",
+        flexDirection: "column",
+      }}>
+        {[...Array(GRID_SIZE)].map((_, rowIndex) => (
+          <div key={rowIndex} style={{ 
+            display: "flex",
+            flex: 1,
+          }}>
+            {[...Array(GRID_SIZE)].map((_, cellIndex) => {
+              const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
+              const isPacman = rowIndex === pacmanPos.y && cellIndex === pacmanPos.x;
+              const isPlayer = playerPositions.some(
+                ([x, y]) => x === cellIndex && y === rowIndex
+              );
 
-            const isPacman = rowIndex === pacmanPos.y && cellIndex === pacmanPos.x;
-
-            const isPlayer = playerPositions.some(
-              ([x, y]) => x === cellIndex && y === rowIndex
-            );
-
-
-            return (
-              <div
-                key={`${rowIndex}-${cellIndex}`}
-                style={{
-                  width: "32px",
-                  height: "32px",
-                  backgroundColor: isPlayer
-                    ? "red"
-                    : cell === 2
-                    ? "black"
-                    : cell === 0
-                    ? "black"
-                    : "blue",
-                  border: "1px solid #333",
-                  position: "relative",
-                }}
-              >
-                {cell === 2 && !isPacman && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      width: "4px",
-                      height: "4px",
-                      backgroundColor: "yellow",
-                      borderRadius: "50%",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  />
-                )}
-                {isPacman && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      width: "20px",
-                      height: "20px",
-                      backgroundColor: "yellow",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ))}
+              return (
+                <div
+                  key={`${rowIndex}-${cellIndex}`}
+                  style={{
+                    flex: 1,
+                    aspectRatio: "1/1",
+                    backgroundColor: isPlayer
+                      ? "red"
+                      : cell === 2
+                      ? "black"
+                      : cell === 0
+                      ? "black"
+                      : "blue",
+                    border: "1px solid #333",
+                    position: "relative",
+                  }}
+                >
+                  {cell === 2 && !isPacman && !isPlayer && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        width: "15%",
+                        height: "15%",
+                        backgroundColor: "yellow",
+                        borderRadius: "50%",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    />
+                  )}
+                  {isPacman && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        width: "70%",
+                        height: "70%",
+                        backgroundColor: "yellow",
+                        borderRadius: "50%",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
