@@ -11,41 +11,54 @@ import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
 function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
+  const [playerPositions, setPlayerPositions] = useState<[number, number][]>([]);
 
   useEffect(() => {
-    const fetchBoardData = async () => {
+    const fetchData = async () => {
       try {
         const provider = new RpcProvider({
           nodeUrl: "http://100.74.177.49:5050",
         });
 
-        const response = await provider.callContract({
-          contractAddress:
-            "0x028dc8c9105335b2b78b451dc031e6fa0fac3a4ca7b5d2d36ddb63dbb61c0e46",
+        // Fetch board data
+        const boardResponse = await provider.callContract({
+          contractAddress: PACROYALE_ADDRESS,
           entrypoint: "get_map",
         });
 
-        if (response) {
-          // Parse hex values to integers
-          const parsedData = response.slice(1).map((hex: string) =>
+        // Fetch player positions
+        const positionsResponse = await provider.callContract({
+          contractAddress: PACROYALE_ADDRESS,
+          entrypoint: "get_positions",
+        });
+
+        if (boardResponse) {
+          const parsedData = boardResponse.slice(1).map((hex: string) =>
             parseInt(hex, 16)
           );
-          console.log("Parsed board data:", parsedData);
           setBoardData(parsedData);
         }
+
+        if (positionsResponse) {
+          const positions = positionsResponse.slice(1).map((arr: any) => [
+            parseInt(arr[0], 16),
+            parseInt(arr[1], 16)
+          ]);
+          setPlayerPositions(positions);
+        }
       } catch (error) {
-        console.error("Failed to fetch board data:", error);
+        console.error("Failed to fetch data:", error);
       }
     };
 
-    fetchBoardData();
+    fetchData();
   }, []);
-  console.log(boardData);
+
   return (
     <>
       <DevWallet />
       {page === "landing" && <LandingPage setPage={setPage} />}
-      {page === "board" && <Board board={boardData} />}
+      {page === "board" && <Board board={boardData} playerPositions={playerPositions} />}
     </>
   );
 }
