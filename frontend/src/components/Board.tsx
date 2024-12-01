@@ -1,80 +1,75 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import './crt.css';
 import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
 import chompSoundFile from "../assets/pacman_chomp.wav";
 import beginningSoundFile from "../assets/pacman_beginning.wav";
 
 const chompSound = new Audio(chompSoundFile);
+chompSound.loop = true;
 const beginningSound = new Audio(beginningSoundFile);
 import PacmanImage from "../assets/pacman.gif";
 
 interface BoardProps {
   board: number[];
   playerPositions: [number, number][];
+  handleMove: (direction: number) => void;
 }
 
-const PLAYER_COLORS = [
-  '#FF0000', // Red
-  '#00FF00', // Green
-  '#00FFFF', // Cyan
-  '#FF00FF', // Magenta
-];
-
-const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
+const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => {
   const GRID_SIZE = 23;
-  const [pacmanPos, setPacmanPos] = useState({ x: 11, y: 11 });
-  
+  const [previousPositions, setPreviousPositions] = useState<Map<string, [number, number]>>(new Map());
+  const [playerDirections, setPlayerDirections] = useState<Map<string, 'right' | 'left' | 'up' | 'down'>>(new Map());
+  const lastMoveTime = useRef<number>(0);
+
   useEffect(() => {
     beginningSound.play().catch((err) => {
       console.warn("Error playing beginning sound:", err);
     });
+    
+    chompSound.play().catch((err) => {
+      console.warn("Error playing chomp sound:", err);
+    });
+
+    return () => {
+      chompSound.pause();
+      chompSound.currentTime = 0;
+    };
   }, []);
-  const [pacmanDirection, setPacmanDirection] = useState<'right' | 'left' | 'up' | 'down'>('right');
-  const [previousPositions, setPreviousPositions] = useState<Map<string, [number, number]>>(new Map());
-  const [playerDirections, setPlayerDirections] = useState<Map<string, 'right' | 'left' | 'up' | 'down'>>(new Map());
+
+  const debouncedHandleMove = useCallback((direction: number) => {
+    const now = Date.now();
+    if (now - lastMoveTime.current >= 350) {
+      handleMove(direction);
+      lastMoveTime.current = now;
+    }
+  }, [handleMove]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      setPacmanPos(prev => {
-        let newPos = { ...prev };
-        
-        switch (e.key) {
-          case "ArrowUp":
-            setPacmanDirection('up');
-            newPos.y = Math.max(0, prev.y - 1);
-            break;
-          case "ArrowDown":
-            setPacmanDirection('down');
-            newPos.y = Math.min(GRID_SIZE - 1, prev.y + 1);
-            break;
-          case "ArrowLeft":
-            setPacmanDirection('left');
-            newPos.x = Math.max(0, prev.x - 1);
-            break;
-          case "ArrowRight":
-            setPacmanDirection('right');
-            newPos.x = Math.min(GRID_SIZE - 1, prev.x + 1);
-            break;
-        }
-
-        // Play chomp sound on valid keypress
-        chompSound.currentTime = 0; // Reset to start
-        chompSound.play().catch((err) => {
-          console.warn("Error playing chomp sound:", err);
-        }); 
-
-        return newPos;
-      });
+      switch (e.key) {
+        case "ArrowUp":
+          debouncedHandleMove(0);
+          break;
+        case "ArrowDown":
+          debouncedHandleMove(1);
+          break;
+        case "ArrowLeft":
+          debouncedHandleMove(2);
+          break;
+        case "ArrowRight":
+          debouncedHandleMove(3);
+          break;
+      }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, []);
+  }, [debouncedHandleMove]);
 
   useEffect(() => {
     playerPositions.forEach((pos, playerIndex) => {
       const [x, y] = pos;
-      const prevPos = previousPositions.get(playerIndex);
+      const prevPos = previousPositions.get(playerIndex.toString());
       
       if (prevPos) {
         const [prevX, prevY] = prevPos;
@@ -86,12 +81,11 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
           else if (y > prevY) direction = 'down';
           else if (y < prevY) direction = 'up';
           
-          console.log(`Player ${playerIndex} moved from (${prevX},${prevY}) to (${x},${y}), direction: ${direction}`);
-          setPlayerDirections(prev => new Map(prev).set(playerIndex, direction));
+          setPlayerDirections(prev => new Map(prev).set(playerIndex.toString(), direction));
         }
       }
       
-      setPreviousPositions(prev => new Map(prev).set(playerIndex, [x, y]));
+      setPreviousPositions(prev => new Map(prev).set(playerIndex.toString(), [x, y]));
     });
   }, [playerPositions]);
 
@@ -114,9 +108,9 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
         animation: "textShadow 1.6s infinite",
         backgroundColor: "#000",
         backgroundImage: `url(${SkinOverlay})`,
-        backgroundSize: "cover", // Ensures the image covers the entire div
-        backgroundPosition: "center", // Centers the image
-        backgroundRepeat: "no-repeat", // Prevents tiling
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}>
       <div style={{
         width: "min(75vh, 75vw)",
@@ -131,7 +125,6 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
           }}>
             {[...Array(GRID_SIZE)].map((_, cellIndex) => {
               const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
-              const isPacman = rowIndex === pacmanPos.y && cellIndex === pacmanPos.x;
               const isPlayer = playerPositions.some(
                 ([x, y]) => x === cellIndex && y === rowIndex
               );
@@ -147,7 +140,7 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                     position: "relative",
                   }}
                 >
-                  {cell === 2 && !isPacman && !isPlayer && (
+                  {cell === 2 && !isPlayer && (
                     <div
                       style={{
                         position: "absolute",
@@ -161,25 +154,6 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                       }}
                     />
                   )}
-                  {isPacman && (
-                    <img
-                      src={PacmanImage}
-                      style={{
-                        position: "absolute",
-                        width: "70%",
-                        height: "70%",
-                        top: "50%",
-                        left: "50%",
-                        transform: `translate(-50%, -50%) rotate(${
-                          pacmanDirection === 'right' ? '0deg' :
-                          pacmanDirection === 'down' ? '90deg' :
-                          pacmanDirection === 'left' ? '180deg' :
-                          pacmanDirection === 'up' ? '270deg' : '0deg'
-                        })`,
-                      }}
-                      alt="Pacman"
-                    />
-                  )}
                   {isPlayer && (
                     <img
                       src={PacmanImage}
@@ -189,17 +163,23 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                         height: "70%",
                         top: "50%",
                         left: "50%",
-                        filter: `hue-rotate(${(() => {
+                        filter: (() => {
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          return playerIndex >= 0 ? `${(playerIndex * 90) % 360}deg` : '0deg';
-                        })()})`,
+                          switch (playerIndex) {
+                            case 0: return 'brightness(0) saturate(100%) invert(88%) sepia(61%) saturate(4000%) hue-rotate(360deg)'; // Bright Yellow (#FFFF00)
+                            case 1: return 'brightness(0) saturate(100%) invert(50%) sepia(85%) saturate(1267%) hue-rotate(357deg)'; // Orange-Red (#FF4500)
+                            case 2: return 'brightness(0) saturate(100%) invert(23%) sepia(91%) saturate(6453%) hue-rotate(343deg)'; // Hot Pink (#FF1493)
+                            case 3: return 'brightness(0) saturate(100%) invert(90%) sepia(95%) saturate(9938%) hue-rotate(122deg)'; // Bright Green (#00FF00)
+                            default: return 'brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3000%) hue-rotate(1960deg)'; // Default yellow
+                          }
+                        })(),
                         transform: (() => {
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const direction = playerDirections.get(playerIndex);
+                          const direction = playerDirections.get(playerIndex.toString());
                           console.log(`Rendering player ${playerIndex} at (${cellIndex},${rowIndex}) with direction ${direction}`);
                           
                           return `translate(-50%, -50%) rotate(${
