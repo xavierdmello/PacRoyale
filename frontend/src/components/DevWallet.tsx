@@ -3,6 +3,7 @@ import { Connector, ConnectArgs } from "@starknet-react/core";
 import { AccountInterface, ProviderInterface } from "starknet";
 import { RpcProvider, Account, constants } from "starknet";
 import { useEffect, useState } from "react";
+import SwapModal from "./SwapModal";
 
 const PREFUNDED_ACCOUNTS = [
   {
@@ -150,6 +151,7 @@ export function DevWallet() {
       <div className="text-xl font-bold">
         PacRoyale
       </div>
+      <SwapModal />
 
       <div className="flex items-center gap-4">
         {address ? (

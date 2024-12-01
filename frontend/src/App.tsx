@@ -241,7 +241,6 @@ function App() {
           >
             Previous Game
           </button>
-          {/* Add Init Game button that only shows when gameId is topGameId + 1 */}
           {gameId === topGameId + 1 && (
             <button
               onClick={handleInitGame}
@@ -270,44 +269,6 @@ function App() {
             >
               Add Player
             </button>
-
-            <div className="grid grid-cols-3 gap-2 w-32">
-              <div></div>
-              <button
-                onClick={() => handleMove(0)}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                disabled={!address}
-              >
-                ↑
-              </button>
-              <div></div>
-
-              <button
-                onClick={() => handleMove(2)}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                disabled={!address}
-              >
-                ←
-              </button>
-              <div></div>
-              <button
-                onClick={() => handleMove(3)}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                disabled={!address}
-              >
-                →
-              </button>
-
-              <div></div>
-              <button
-                onClick={() => handleMove(1)}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                disabled={!address}
-              >
-                ↓
-              </button>
-              <div></div>
-            </div>
           </div>
         </div>
       )}
