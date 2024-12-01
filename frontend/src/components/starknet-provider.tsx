@@ -3,7 +3,7 @@ import React from "react";
 import { sepolia } from "@starknet-react/chains";
 import {
   StarknetConfig,
-  publicProvider,
+  jsonRpcProvider,
   argent,
   braavos,
   useInjectedConnectors,
@@ -11,32 +11,21 @@ import {
 } from "@starknet-react/core";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
-  const provider = publicProvider();
-
-  const { connectors } = useInjectedConnectors({
-    recommended: [
-      argent(),
-      braavos(),
-    ],
-    includeRecommended: "onlyIfNoConnectors",
-    order: "random"
+  const provider = jsonRpcProvider({
+    rpc: (chain) => ({
+      nodeUrl: "http://100.74.177.49:5050",
+    }),
   });
 
-  const chain = { 
-    ...sepolia,
-    rpcUrls: {
-      default: {
-        http: ["http://localhost:5050"]
-      },
-      public: {
-        http: ["http://localhost:5050"]
-      }
-    }
-  };
+  const { connectors } = useInjectedConnectors({
+    recommended: [argent(), braavos()],
+    includeRecommended: "onlyIfNoConnectors",
+    order: "random",
+  });
 
   return (
     <StarknetConfig
-      chains={[chain]}
+      chains={[sepolia]}
       provider={provider}
       connectors={connectors}
       explorer={voyager}
@@ -44,4 +33,4 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       {children}
     </StarknetConfig>
   );
-} 
+}

@@ -49,7 +49,7 @@ class DevnetConnector extends Connector {
   constructor(account: typeof PREFUNDED_ACCOUNTS[0]) {
     super();
     this.provider = new RpcProvider({
-      nodeUrl: "http://localhost:5050",
+      nodeUrl: "http://100.74.177.49:5050",
       chainId: constants.StarknetChainId.SN_GOERLI
     });
     this.selectedAccount = account;
