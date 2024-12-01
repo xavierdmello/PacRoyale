@@ -9,6 +9,7 @@ trait IPacRoyale<TContractState> {
     fn init_game(ref self: TContractState);
     fn get_top_game_id(self: @TContractState) -> u64;
     fn get_winner(self: @TContractState, game_id: u64) -> starknet::ContractAddress;
+    fn get_balance(self: @TContractState, game_id: u64) -> u64;
 }
 
 #[starknet::contract]
@@ -222,6 +223,7 @@ mod PacRoyale {
             let mut last_alive_player = caller;
             let mut i = 0;
             let players_len = self.players.entry(game_id).len();
+            let mut total_balance = 0;
             
             if players_len > 1 {
                 loop {
@@ -236,12 +238,33 @@ mod PacRoyale {
                         last_alive_player = player_address;
                     }
                     
+                    total_balance += current_player.balance;
                     i += 1;
                 };
 
                 // If only one player is alive, they're the winner
                 if alive_count == 1 {
                     self.winner.entry(game_id).write(last_alive_player);
+                    
+                    // Reset all players' balances to 0
+                    let mut j = 0;
+                    loop {
+                        if j >= players_len {
+                            break;
+                        }
+                        let player_address = self.players.entry(game_id).at(j).read();
+                        let mut current_player = self.player_map.entry(game_id).entry(player_address).read();
+                        
+                        // Set balance to 0 for everyone except winner
+                        if player_address == last_alive_player {
+                            current_player.balance = total_balance;
+                        } else {
+                            current_player.balance = 0;
+                        }
+                        
+                        self.player_map.entry(game_id).entry(player_address).write(current_player);
+                        j += 1;
+                    };
                 }
             }
 
@@ -318,6 +341,12 @@ mod PacRoyale {
     // Add getter for winner
     fn get_winner(self: @ContractState, game_id: u64) -> ContractAddress {
         self.winner.entry(game_id).read()
+    }
+
+    fn get_balance(self: @ContractState, game_id: u64) -> u64 {
+        let caller = get_caller_address();
+        let player = self.player_map.entry(game_id).entry(caller).read();
+        player.balance
     }
     }
 
