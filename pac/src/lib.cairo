@@ -57,6 +57,11 @@ mod PacToken {
     }
 
     #[external(v0)]
+    fn mint_to(ref self: ContractState, to: ContractAddress, amount: u256) {
+        self.erc20.mint(to, amount);
+    }
+
+    #[external(v0)]
     fn burn(ref self: ContractState, amount: u256) {        
         // Burn the Tuah tokens first
         self.erc20.burn(get_caller_address(), amount);

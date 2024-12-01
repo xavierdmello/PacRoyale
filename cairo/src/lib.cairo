@@ -14,7 +14,7 @@ trait IPacRoyale<TContractState> {
 
 #[starknet::interface]
 trait IPacToken<TContractState> {
-    fn mint(ref self: TContractState, to: ContractAddress, amount: u256);
+    fn mint_to(ref self: TContractState, to: ContractAddress, amount: u256);
 }
 
 #[starknet::contract]
@@ -178,7 +178,7 @@ mod PacRoyale {
             } else if map_value == 2 {
                 // Mint 1 full token (1 * 10^18) when collecting a dot
                 let pac_token = IPacTokenDispatcher { contract_address: self.pac_token_address.read() };
-                pac_token.mint(caller, (1_u256 * 1000000000000000000_u256));
+                pac_token.mint_to(caller, 1000000000000000000_u256);
                 // Clear dot from map
                 self.map.entry(game_id).at(index).write(0);
             } else {
