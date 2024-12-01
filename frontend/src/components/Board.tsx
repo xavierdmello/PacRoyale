@@ -13,7 +13,7 @@ import PacmanImage from "../assets/pacman.gif";
 
 interface BoardProps {
   board: number[];
-  playerPositions: [number, number, boolean, boolean][];
+  playerPositions: [number, number, boolean, boolean, number][];
   handleMove: (direction: number) => void;
 }
 
@@ -108,13 +108,12 @@ const Board: React.FC<BoardProps> = ({
 
   useEffect(() => {
     playerPositions.forEach((pos, playerIndex) => {
-      const [, , , isDead] = pos;
+      const [, , , isDead, ] = pos;
       const prevPositions = previousPositions.get(playerIndex.toString());
       
       if (prevPositions) {
         const prevIsDead = playerPositions[playerIndex]?.[3] ?? false;
         
-        // If player just died (wasn't dead before but is dead now)
         if (!prevIsDead && isDead) {
           deathSound.play().catch((err) => {
             console.warn("Error playing death sound:", err);
@@ -167,7 +166,7 @@ const Board: React.FC<BoardProps> = ({
             {[...Array(GRID_SIZE)].map((_, cellIndex) => {
               const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
               const isPlayer = playerPositions.some(
-                ([px, py, _, isDead]) =>
+                ([px, py, _, isDead, __]) =>
                   px === cellIndex && py === rowIndex && !isDead
               );
 
@@ -226,7 +225,7 @@ const Board: React.FC<BoardProps> = ({
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const [, , isPoweredUp] =
+                          const [, , isPoweredUp, , ] =
                             playerPositions[playerIndex];
                           return isPoweredUp ? "140%" : "70%";
                         })(),
@@ -234,7 +233,7 @@ const Board: React.FC<BoardProps> = ({
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const [, , isPoweredUp] =
+                          const [, , isPoweredUp, , ] =
                             playerPositions[playerIndex];
                           return isPoweredUp ? "140%" : "70%";
                         })(),
@@ -244,7 +243,7 @@ const Board: React.FC<BoardProps> = ({
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const [, , isPoweredUp] =
+                          const [, , isPoweredUp, , ] =
                             playerPositions[playerIndex];
                           const baseColor = (() => {
                             switch (playerIndex) {

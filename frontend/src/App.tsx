@@ -23,6 +23,7 @@ function App() {
     []
   );
   const [topGameId, setTopGameId] = useState(1);
+  const [winner, setWinner] = useState<string | null>(null);
 
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
@@ -216,6 +217,39 @@ function App() {
       console.error("Failed to initialize game:", error);
     }
   };
+
+  // Add new function to fetch winner
+  const fetchWinner = async () => {
+    try {
+      const winnerResponse = await provider.callContract({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "get_winner",
+        calldata: CallData.compile([gameId]),
+      });
+
+      if (winnerResponse && winnerResponse[0] !== '0x0') {
+        const winnerAddress = winnerResponse[0];
+        setWinner(winnerAddress);
+        console.log("Game over! Winner:", winnerAddress);
+      }
+    } catch (error) {
+      console.error("Failed to fetch winner:", error);
+    }
+  };
+
+  // Add new useEffect for polling winner
+  useEffect(() => {
+    if (page === "board") {
+      // Initial fetch
+      fetchWinner();
+
+      // Set up interval
+      const intervalId = setInterval(fetchWinner, 1000);
+
+      // Cleanup
+      return () => clearInterval(intervalId);
+    }
+  }, [page, gameId]); // Depend on page and gameId
 
   return (
     <>
