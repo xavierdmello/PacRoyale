@@ -23,21 +23,9 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     order: "random",
   });
 
-  const chain = {
-    ...sepolia,
-    rpcUrls: {
-      default: {
-        http: ["http://100.74.177.49:5050"],
-      },
-      public: {
-        http: ["http://100.74.177.49:5050"],
-      },
-    },
-  };
-
   return (
     <StarknetConfig
-      chains={[chain]}
+      chains={[sepolia]}
       provider={provider}
       connectors={connectors}
       explorer={voyager}
