@@ -326,7 +326,7 @@ function App() {
       {showGameOverModal && (
         <GameEndModal
           isOpen={showGameOverModal}
-          isWinner={address === winner}
+          isWinner={address?.toLowerCase() === winner?.toLowerCase()}
           tokenAmount={winningBalance}
           onClose={() => setShowGameOverModal(false)}
           winnerText={`Player ${winningPlayerNumber} Won!`}
