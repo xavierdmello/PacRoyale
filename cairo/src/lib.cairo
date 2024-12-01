@@ -1,3 +1,5 @@
+use starknet::ContractAddress;
+
 #[starknet::interface]
 trait IPacRoyale<TContractState> {
     fn add_player(ref self: TContractState, game_id: u64);
@@ -10,6 +12,11 @@ trait IPacRoyale<TContractState> {
     fn get_top_game_id(self: @TContractState) -> u64;
 }
 
+#[starknet::interface]
+trait IPacToken<TContractState> {
+    fn mint(ref self: TContractState, to: ContractAddress, amount: u256);
+}
+
 #[starknet::contract]
 mod PacRoyale {
     use starknet::storage::{
@@ -18,6 +25,8 @@ mod PacRoyale {
     };
     use core::starknet::{ContractAddress, get_caller_address};
     use core::array::ArrayTrait;
+    use super::IPacTokenDispatcher;
+    use super::IPacTokenDispatcherTrait;
     const MAP_WIDTH: u64 = 23;
     const MAP_HEIGHT: u64 = 23;
 
@@ -37,6 +46,7 @@ mod PacRoyale {
         players: Map<u64, Vec<ContractAddress>>,
         spawn_points: Map<u64, Vec<(u64, u64)>>,
         top_game_id: u64,
+        pac_token_address: ContractAddress,
     }
 
     #[abi(embed_v0)]
@@ -154,15 +164,22 @@ mod PacRoyale {
                 new_x += 1;
             }
 
-            // Check if the new position is a powerup
+            // Check if the new position is a powerup or dot
             let map_value = self.get_map_value(game_id, new_x, new_y);
+            let index = new_y * MAP_WIDTH + new_x;
+
             if map_value == 3 {
                 // Set powerup
                 player.poweredUp = true;
                 player.powerup_end = current_time + 10; // 10 seconds from now
                 
                 // Clear powerup from map
-                let index = new_y * MAP_WIDTH + new_x;
+                self.map.entry(game_id).at(index).write(0);
+            } else if map_value == 2 {
+                // Mint 1 full token (1 * 10^18) when collecting a dot
+                let pac_token = IPacTokenDispatcher { contract_address: self.pac_token_address.read() };
+                pac_token.mint(caller, (1_u256 * 1000000000000000000_u256));
+                // Clear dot from map
                 self.map.entry(game_id).at(index).write(0);
             } else {
                 assert(map_value != 1, 'Cannot move into wall');
@@ -271,7 +288,8 @@ mod PacRoyale {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState) {
+    fn constructor(ref self: ContractState, pac_token_address: ContractAddress) {
+        self.pac_token_address.write(pac_token_address);
         self.init_game();
     }
 
