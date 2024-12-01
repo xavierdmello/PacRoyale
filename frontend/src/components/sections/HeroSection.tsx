@@ -5,9 +5,10 @@ import { loadFull } from "tsparticles";
 
 interface HeroSectionProps {
   mousePos: { x: number; y: number };
+  setPage: (page: string) => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ mousePos }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ mousePos, setPage }) => {
   const particlesInit = useCallback(async (main: any) => {
     await loadFull(main);
   }, []);
@@ -143,11 +144,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ mousePos }) => {
           {/* CTA Button */}
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-red-500 rounded-lg opacity-70 blur" />
-            <div className="relative px-12 py-4 bg-black rounded-lg font-bold text-2xl">
+            <button
+              onClick={() => setPage('board')}
+              className="relative px-12 py-4 bg-black rounded-lg font-bold text-2xl cursor-pointer"
+            >
               <span className="bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent">
                 START GAME
               </span>
-            </div>
+            </button>
           </div>
         </motion.div>
       </div>

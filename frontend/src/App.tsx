@@ -52,9 +52,8 @@ function App() {
   return (
     <>
       <DevWallet />
-      {page === "landing" && <LandingPage />}
-      {/* Pass the map data to the Board component */}
-      {page === "board" && <Board board={mapData} />}
+      {page === "landing" && <LandingPage setPage={setPage} />}
+      {page === "board" && <Board board={mapData || []} />}
     </>
   );
 }

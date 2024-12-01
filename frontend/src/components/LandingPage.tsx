@@ -4,7 +4,11 @@ import { FeaturesSection } from "./sections/FeaturesSection";
 import { TransitionSection } from "./sections/TransitionSection";
 import { GameplaySection } from "./sections/GameplaySection";
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  setPage: (page: string) => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ setPage }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -34,7 +38,7 @@ const LandingPage: React.FC = () => {
       <div className="fixed inset-0 bg-black text-white">
         <div className="h-full overflow-y-auto snap-y snap-mandatory">
           <div className="snap-start h-screen w-full shrink-0">
-            <HeroSection mousePos={mousePos} />
+            <HeroSection mousePos={mousePos} setPage={setPage} />
           </div>
           <TransitionSection />
           <FeaturesSection mousePos={mousePos} />
