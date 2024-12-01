@@ -1,7 +1,7 @@
 import "./App.css";
 
 import { DevWallet } from "./components/DevWallet";
-import { Provider, Contract, RpcProvider } from "starknet";
+import { Provider, Contract, RpcProvider, CallData } from "starknet";
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/LandingPage";
 import Board from "./components/Board";
@@ -13,7 +13,7 @@ function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
   const [playerPositions, setPlayerPositions] = useState<[number, number][]>([]);
-  const { address } = useAccount();
+  const { address, account } = useAccount();
   const provider = new RpcProvider({
     nodeUrl: "http://100.74.177.49:5050",
   });
@@ -48,7 +48,7 @@ function App() {
           const positions = positionsResponse.slice(1).map((arr: any) => [
             parseInt(arr[0], 16),
             parseInt(arr[1], 16)
-          ]);
+          ]) as [number, number][];
           setPlayerPositions(positions);
         }
       } catch (error) {
@@ -61,6 +61,11 @@ function App() {
 
   const handleAddPlayer = async () => {
     try {
+      if (!account) {
+        console.error("No account connected");
+        return;
+      }
+
       const contract = new Contract(
         [
           {
@@ -68,10 +73,12 @@ function App() {
             type: "function",
             inputs: [],
             outputs: [],
+            state_mutability: "external",
           },
         ],
         PACROYALE_ADDRESS,
-        provider
+        account,
+        { cairoVersion: "1" }
       );
 
       const result = await contract.add_player();
@@ -83,6 +90,11 @@ function App() {
 
   const handleMove = async (direction: number) => {
     try {
+      if (!account) {
+        console.error("No account connected");
+        return;
+      }
+
       const contract = new Contract(
         [
           {
@@ -90,13 +102,16 @@ function App() {
             type: "function",
             inputs: [{ name: "direction", type: "felt252" }],
             outputs: [],
+            state_mutability: "external",
           },
         ],
         PACROYALE_ADDRESS,
-        provider
+        account,
+        { cairoVersion: "1" }
       );
 
-      const result = await contract.move(direction);
+      const calldata = CallData.compile({ direction: direction });
+      const result = await contract.move(calldata);
       console.log("Moved:", result);
     } catch (error) {
       console.error("Failed to move:", error);
