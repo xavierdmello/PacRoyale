@@ -3,7 +3,7 @@
 mod PacRoyale {
     use starknet::storage::{
         StoragePointerReadAccess, StoragePointerWriteAccess,
-        Vec, VecTrait, MutableVecTrait
+        Vec, VecTrait, MutableVecTrait,
     };
     const MAP_WIDTH: u64 = 23;
     const MAP_HEIGHT: u64 = 23;
@@ -55,7 +55,7 @@ mod PacRoyale {
         }
 
         // Get value at x,y coordinates from the 1D array representation
-        #[external(v0)]
+        #[abi(embed_v0)]
         fn get_map_value(self: @ContractState, x: u64, y: u64) -> felt252 {
             // Validate coordinates are within bounds
             assert(x < MAP_WIDTH, 'X coordinate out of bounds');
@@ -66,6 +66,14 @@ mod PacRoyale {
             
             // Return value at calculated index
             self.map.at(index).read()
+        }
+
+        #[abi(embed_v0)]
+        fn set_map_value(ref self: ContractState, x: u64, y: u64, value: felt252) {
+            // Validate coordinates are within bounds
+            assert(x < MAP_WIDTH, 'X coordinate out of bounds');
+            assert(y < MAP_HEIGHT, 'Y coordinate out of bounds');
+            self.map.at(y * MAP_WIDTH + x).write(value);
         }
 
     
