@@ -118,7 +118,9 @@ function App() {
         { cairoVersion: "2" }
       );
 
-      const result = await contract.add_player(gameId);
+      // Use CallData.compile to properly format the u64 argument
+      const calldata = CallData.compile([gameId]);
+      const result = await contract.add_player(calldata);
       console.log("Added player:", result);
     } catch (error) {
       console.error("Failed to add player:", error);
