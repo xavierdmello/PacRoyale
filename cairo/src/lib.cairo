@@ -27,6 +27,7 @@ mod PacRoyale {
         y: u64,
         poweredUp: bool,
         powerup_end: u64,  // Timestamp when powerup ends
+        isDead: bool  // New field
     }
 
     #[storage]
@@ -60,7 +61,7 @@ mod PacRoyale {
             let (x, y) = spawn_point;
 
             // Create new player with default powerup values
-            let player = Player { x, y, poweredUp: false, powerup_end: 0 };
+            let player = Player { x, y, poweredUp: false, powerup_end: 0, isDead: false };
             self.player_map.entry(game_id).entry(caller).write(player);
             self.players.entry(game_id).append().write(caller);
         }
@@ -77,6 +78,7 @@ mod PacRoyale {
             positions.append(player.x);
             positions.append(player.y);
             positions.append(if player.poweredUp { 1 } else { 0 });  // Convert bool to u64
+            positions.append(if player.isDead { 1 } else { 0 });  // Add isDead status
             positions
         }
 
@@ -113,6 +115,7 @@ mod PacRoyale {
                 positions.append(player.x);
                 positions.append(player.y);
                 positions.append(if player.poweredUp { 1 } else { 0 });  // Convert bool to u64
+                positions.append(if player.isDead { 1 } else { 0 });  // Add isDead status
                 
                 i += 1;
             };
@@ -123,6 +126,9 @@ mod PacRoyale {
         fn move(ref self: ContractState, game_id: u64, direction: felt252) {
             let caller = get_caller_address();
             let mut player = self.player_map.entry(game_id).entry(caller).read();
+            
+            // Don't allow dead players to move
+            assert(!player.isDead, 'Dead players cannot move');
 
             // Check if powerup expired
             let current_time = starknet::get_block_timestamp();
@@ -162,12 +168,45 @@ mod PacRoyale {
                 assert(map_value != 1, 'Cannot move into wall');
             }
 
+            // Track if player should die from collisions
+            let mut should_die = false;
+
+            // After updating position, check for collisions with other players
+            let mut i: u64 = 0;
+            loop {
+                if i >= self.players.entry(game_id).len() {
+                    break;
+                }
+                
+                let other_address = self.players.entry(game_id).at(i).read();
+                if other_address != caller {
+                    let other_player = self.player_map.entry(game_id).entry(other_address).read();
+                    
+                    // Check if players are on the same square
+                    if new_x == other_player.x && new_y == other_player.y {
+                        // If current player is powered up and other isn't, kill other player
+                        if player.poweredUp && !other_player.poweredUp {
+                            let mut updated_other = other_player;
+                            updated_other.isDead = true;
+                            self.player_map.entry(game_id).entry(other_address).write(updated_other);
+                        }
+                        // If other player is powered up and current isn't, kill current player
+                        else if !player.poweredUp && other_player.poweredUp {
+                            should_die = true;
+                        }
+                        // If both are powered up or both are not, nothing happens
+                    }
+                }
+                i += 1;
+            };
+
             // Update player position
             let new_player = Player { 
                 x: new_x, 
                 y: new_y, 
                 poweredUp: player.poweredUp, 
-                powerup_end: player.powerup_end 
+                powerup_end: player.powerup_end,
+                isDead: should_die 
             };
             self.player_map.entry(game_id).entry(caller).write(new_player);
         }
