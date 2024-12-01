@@ -10,13 +10,42 @@ const SwapModal = () => {
   const { account } = useAccount();
 
   const PAC_ADDRESS = "0x030a17f542dec4dfa24ca43c23b13aa2c855f4386d6b88ab6ebadeb8e4d3790c";
+  const USDC_ADDRESS = "0x030a17f542dec4dfa24ca43c23b13aa2c855f4386d6b88ab6ebadeb8e4d3790c";
+  const PACTOKEN_ADDRESS = "0x030a17f542dec4dfa24ca43c23b13aa2c855f4386d6b88ab6ebadeb8e4d3790c";
 
-  const handleMint = async () => {
+  const handleUsdcToPac = async () => {
     if (!account || !amount) return;
 
     try {
       setIsSwapping(true);
-      const contract = new Contract(
+
+      // First approve USDC spending
+      const usdcContract = new Contract(
+        [
+          {
+            name: "approve",
+            type: "function",
+            inputs: [
+              { name: "spender", type: "ContractAddress" },
+              { name: "amount", type: "u256" }
+            ],
+            outputs: [],
+            stateMutability: "external",
+          }
+        ],
+        USDC_ADDRESS,
+        account,
+        { cairoVersion: "2" }
+      );
+
+      // Approve USDC spending
+      const approveResponse = await usdcContract.approve(
+        CallData.compile([PACTOKEN_ADDRESS, amount])
+      );
+      console.log("USDC approval response:", approveResponse);
+
+      // Then mint PAC tokens
+      const pacContract = new Contract(
         [
           {
             name: "mint",
@@ -24,24 +53,25 @@ const SwapModal = () => {
             inputs: [{ name: "amount", type: "u256" }],
             outputs: [],
             stateMutability: "external",
-          },
+          }
         ],
-        PAC_ADDRESS,
-        account
+        PACTOKEN_ADDRESS,
+        account,
+        { cairoVersion: "2" }
       );
 
-      const calldata = CallData.compile([amount]);
-      const response = await contract.mint(calldata);
-      console.log("Mint response:", response);
+      // Note: The contract will mint 10x this amount in PAC tokens
+      const mintResponse = await pacContract.mint(CallData.compile([amount]));
+      console.log("PAC mint response:", mintResponse);
     } catch (error) {
-      console.error("Error minting:", error);
+      console.error("Error minting PAC:", error);
     } finally {
       setIsSwapping(false);
       setShowModal(false);
     }
   };
 
-  const handleBurn = async () => {
+  const handlePacToUsdc = async () => {
     if (!account || !amount) return;
 
     try {
@@ -54,17 +84,18 @@ const SwapModal = () => {
             inputs: [{ name: "amount", type: "u256" }],
             outputs: [],
             stateMutability: "external",
-          },
+          }
         ],
-        PAC_ADDRESS,
-        account
+        PACTOKEN_ADDRESS,
+        account,
+        { cairoVersion: "2" }
       );
 
-      const calldata = CallData.compile([amount]);
-      const response = await contract.burn(calldata);
-      console.log("Burn response:", response);
+      // Note: The contract will return amount/10 in USDC
+      const response = await contract.burn(CallData.compile([amount]));
+      console.log("PAC burn response:", response);
     } catch (error) {
-      console.error("Error burning:", error);
+      console.error("Error burning PAC:", error);
     } finally {
       setIsSwapping(false);
       setShowModal(false);
@@ -125,7 +156,7 @@ const SwapModal = () => {
             />
 
             <button
-              onClick={mode === "mint" ? handleMint : handleBurn}
+              onClick={mode === "mint" ? handleUsdcToPac : handlePacToUsdc}
               disabled={isSwapping || !amount || !account}
               className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
             >

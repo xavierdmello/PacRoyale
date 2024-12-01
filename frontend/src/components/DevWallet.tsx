@@ -180,7 +180,13 @@ export function DevWallet() {
         { cairoVersion: "2" }
       );
 
-      const result = await contract.mint(CallData.compile([amount]));
+      // Convert amount to proper decimals (18 decimals for ERC20)
+      // 100 USDC = 100 * 10^18
+      const DECIMALS = 18;
+      const amountWithDecimals = BigInt(amount / 10) * BigInt(10 ** DECIMALS);
+
+      const calldata = CallData.compile([{ low: amountWithDecimals.toString(), high: "0" }]);
+      const result = await contract.mint(calldata);
       console.log("Minted USDC:", result);
     } catch (error) {
       console.error("Failed to mint USDC:", error);
