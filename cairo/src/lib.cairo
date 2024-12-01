@@ -7,6 +7,7 @@ trait IPacRoyale<TContractState> {
     fn get_map_value(self: @TContractState, game_id: u64, x: u64, y: u64) -> felt252;
     fn get_map(self: @TContractState, game_id: u64) -> Array<felt252>;
     fn init_game(ref self: TContractState);
+    fn get_top_game_id(self: @TContractState) -> u64;
 }
 
 #[starknet::contract]
@@ -60,6 +61,11 @@ mod PacRoyale {
             let player = Player { x, y };
             self.player_map.entry(game_id).entry(caller).write(player);
             self.players.entry(game_id).append().write(caller);
+        }
+
+
+        fn get_top_game_id(self: @ContractState) -> u64 {
+            self.top_game_id.read()
         }
 
         fn get_position(self: @ContractState, game_id: u64) -> Array<u64> {
