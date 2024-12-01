@@ -164,8 +164,22 @@ function App() {
   return (
     <>
       <DevWallet />{" "}
-      <button onClick={() => setGameId(gameId + 1)}>Next Game</button>
-      <button onClick={() => setGameId(gameId - 1)}>Previous Game</button>
+      <div className="fixed left-4 top-20 flex flex-col gap-2 z-50">
+        <div className="text-white">Game ID: {gameId}</div>
+        <button 
+          onClick={() => setGameId(gameId + 1)}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Next Game
+        </button>
+        <button 
+          onClick={() => setGameId(gameId - 1)}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Previous Game
+        </button>
+      </div>
+      
       {page === "landing" && <LandingPage setPage={setPage} />}
       {page === "board" && (
         <div>
