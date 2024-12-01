@@ -26,10 +26,12 @@ mod PacRoyale {
     }
 
     // Add player to the game
+    #[external(v0)]
     fn add_player(ref self: ContractState) {
         let player_no = self.players.len();
         let spawn_point = self.spawn_points.at(player_no).read();
         let (x, y) = spawn_point;
+
         // Create new player
         let player = Player { x, y};
         self.player_map.entry(get_caller_address()).write(player);
@@ -118,7 +120,7 @@ mod PacRoyale {
     }
 
     // Get value at x,y coordinates from the 1D array representation
-    #[abi(embed_v0)]
+    #[external(v0)]
     fn get_map_value(self: @ContractState, x: u64, y: u64) -> felt252 {
         // Validate coordinates are within bounds
         assert(x < MAP_WIDTH, 'X coordinate out of bounds');
@@ -131,6 +133,7 @@ mod PacRoyale {
         self.map.at(index).read()
     }
 
+    
     fn set_map_value(ref self: ContractState, x: u64, y: u64, value: felt252) {
         // Validate coordinates are within bounds
         assert(x < MAP_WIDTH, 'X coordinate out of bounds');
