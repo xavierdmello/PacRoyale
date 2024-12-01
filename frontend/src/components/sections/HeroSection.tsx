@@ -8,10 +8,42 @@ interface HeroSectionProps {
   setPage: (page: string) => void;
 }
 
+const PacmanRunner: React.FC<{ gridLine: number }> = ({ gridLine }) => {
+  const duration = Math.random() * 20 + 10; // Random duration between 20-30 seconds
+  
+  return (
+    <motion.div
+      className="absolute w-12 h-12 opacity-30 mix-blend-difference"
+      initial={{ x: "-100%" }}
+      animate={{ x: "3500%" }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        ease: "linear",
+        delay: Math.random() * 15, // Random delay for more natural appearance
+      }}
+      style={{
+        top: `${275 + (gridLine * 50)}px`, // 50px is the grid size
+        translateY: "-50%",
+        filter: 'brightness(0.7) contrast(1.2)',
+      }}
+    >
+      <img 
+        src="/pacman.gif" 
+        alt="Pacman"
+        className="w-full h-full"
+      />
+    </motion.div>
+  );
+};
+
 export const HeroSection: React.FC<HeroSectionProps> = ({ mousePos, setPage }) => {
   const particlesInit = useCallback(async (main: any) => {
     await loadFull(main);
   }, []);
+
+  // Generate array of grid line positions (-4 to 4, excluding 0 which is the middle)
+  const gridLines = [...Array(9)].map((_, i) => i - 4).filter(n => n !== 0);
 
   return (
     <div className="relative h-screen snap-start">
@@ -53,7 +85,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ mousePos, setPage }) =
 
       {/* Animated Grid Background */}
       <div 
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full overflow-hidden"
         style={{
           backgroundImage: `
             linear-gradient(to right, #fdfc0215 1px, transparent 1px),
@@ -63,9 +95,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ mousePos, setPage }) =
           transform: `rotate(${mousePos.x * 2}deg)`,
           transformOrigin: 'center center',
           transition: 'transform 0.1s ease-out',
-          overflow: 'hidden'
         }}
-      />
+      >
+
+        {/* Additional Pacmen on different grid lines */}
+        {gridLines.map((line) => (
+          <PacmanRunner key={line} gridLine={line} />
+        ))}
+      </div>
 
       {/* Radial Gradient Overlay */}
       <div 
