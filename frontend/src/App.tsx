@@ -5,7 +5,7 @@ import { Provider, Contract, RpcProvider, CallData } from "starknet";
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/LandingPage";
 import Board from "./components/Board";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
 import { useAccount } from "@starknet-react/core";
 
@@ -14,9 +14,9 @@ function App() {
   const [boardData, setBoardData] = useState([]);
   const [playerPositions, setPlayerPositions] = useState<[number, number][]>([]);
   const { address, account } = useAccount();
-  const provider = new RpcProvider({
+  const provider = useMemo(() => new RpcProvider({
     nodeUrl: "http://100.74.177.49:5050",
-  });
+  }), []);
 
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
@@ -53,29 +53,23 @@ function App() {
 
   // Set up interval for position updates
   useEffect(() => {
-    console.log("Page changed to:", page); // Debug log
+    let intervalId: NodeJS.Timeout;
+
     if (page === "board") {
-      console.log("Starting position updates interval"); // Debug log
-      const intervalId = setInterval(fetchPlayerPositions, 100);
-      
       // Initial fetch
       fetchPlayerPositions();
       
-      return () => {
-        console.log("Cleaning up interval"); // Debug log
-        clearInterval(intervalId);
-      };
+      intervalId = setInterval(fetchPlayerPositions, 1000); // Increased interval to 1 second
+      
+      return () => clearInterval(intervalId);
     }
-  }, [page]);
+  }, [page]); // Add fetchPlayerPositions to deps if needed
 
+  // Modify board data fetching useEffect
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const provider = new RpcProvider({
-          nodeUrl: "http://100.74.177.49:5050",
-        });
-
-        // Fetch board data
+        // Remove provider creation from here since we're using the memoized one
         const boardResponse = await provider.callContract({
           contractAddress: PACROYALE_ADDRESS,
           entrypoint: "get_map",
@@ -93,7 +87,7 @@ function App() {
     };
 
     fetchData();
-  }, []);
+  }, []); // Add provider to deps if not memoized
 
   const handleAddPlayer = async () => {
     try {
