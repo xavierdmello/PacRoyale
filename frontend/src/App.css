@@ -1,0 +1,16 @@
+#root {
+  margin: 0 auto;
+  text-align: center;
+  background-color: #080707;
+  overflow-x: hidden;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}

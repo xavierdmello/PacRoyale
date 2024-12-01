@@ -1,0 +1,8 @@
+export const PACROYALE_ADDRESS =
+  "0x01ec014701f6c1d6b6e1639775cf3d3b4cbe1cd5ef784867ded9048dec4f009d";
+
+export const PACTOKEN_ADDRESS =
+  "0x05c4c22f0c9a5a34bd8882d8a9bde92df59901325c79d80b350d11001766518d";
+
+export const USDC_ADDRESS =
+  "0x025fdf36dfa9e8b096f0fb2f21cc3b6ac168afb4fe1b7f5439e5e1f0da1e8f6f";
