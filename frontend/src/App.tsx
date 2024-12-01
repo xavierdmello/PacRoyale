@@ -152,7 +152,9 @@ function App() {
         { cairoVersion: "2" }
       );
 
-      const result = await contract.move(gameId, direction);
+      // Use CallData.compile to properly format both arguments
+      const calldata = CallData.compile([gameId, direction]);
+      const result = await contract.move(calldata);
       console.log("Moved:", result);
     } catch (error) {
       console.error("Failed to move:", error);
