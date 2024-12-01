@@ -6,6 +6,7 @@ mod PacRoyale {
         Vec, VecTrait, MutableVecTrait, Map, StoragePathEntry,
     };
     use core::starknet::{ContractAddress, get_caller_address};
+    use core::array::ArrayTrait;
 
     const MAP_WIDTH: u64 = 23;
     const MAP_HEIGHT: u64 = 23;
@@ -38,7 +39,32 @@ mod PacRoyale {
         self.players.append().write(get_caller_address());
     }
 
- 
+    #[external(v0)]
+    fn get_position(self: @ContractState) -> (u64, u64) {
+        let caller = get_caller_address();
+        let player = self.player_map.entry(caller).read();
+        (player.x, player.y)
+    }
+
+    // #[external(v0)]
+    // fn get_all_positions(self: @ContractState) -> Array<(ContractAddress, (u64, u64))> {
+    //     let mut positions = ArrayTrait::new();
+    //     let mut i: usize = 0;
+        
+    //     loop {
+    //         if i >= self.players.len() {
+    //             break;
+    //         }
+            
+    //         let player_address = self.players.at(i).read();
+    //         let player = self.player_map.get(player_address).unwrap();
+    //         positions.append((player_address, (player.x, player.y)));
+            
+    //         i += 1;
+    //     };
+        
+    //     positions
+    // }
 
     #[constructor]
     fn constructor(ref self: ContractState) {
