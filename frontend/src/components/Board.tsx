@@ -8,7 +8,13 @@ const Board: React.FC<BoardProps> = ({ board }) => {
   const GRID_SIZE = 23;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div style={{ 
+      display: "flex", 
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "100vh"
+    }}>
       {[...Array(GRID_SIZE)].map((_, rowIndex) => (
         <div key={rowIndex} style={{ display: "flex" }}>
           {[...Array(GRID_SIZE)].map((_, cellIndex) => {
