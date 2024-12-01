@@ -30,6 +30,7 @@ const Board: React.FC<BoardProps> = ({
     Map<string, "right" | "left" | "up" | "down">
   >(new Map());
   const lastMoveTime = useRef<number>(0);
+  const [collectedCoins, setCollectedCoins] = useState<Set<number>>();
 
   useEffect(() => {
     beginningSound.play().catch((err) => {
@@ -124,6 +125,25 @@ const Board: React.FC<BoardProps> = ({
     });
   }, [playerPositions, previousPositions]);
 
+  useEffect(() => {
+    // Initialize collectedCoins if not already initialized
+    if (!collectedCoins) {
+      setCollectedCoins(new Set());
+    }
+
+    // Check each player's position for coins
+    playerPositions.forEach(([x, y]) => {
+      const index = y * GRID_SIZE + x;
+      if (board[index] === 2) { // 2 represents coins in the game
+        setCollectedCoins(prev => {
+          const newSet = new Set(prev);
+          newSet.add(index);
+          return newSet;
+        });
+      }
+    });
+  }, [playerPositions, board]);
+
   return (
     <div
       className="crt"
@@ -189,13 +209,13 @@ const Board: React.FC<BoardProps> = ({
                     position: "relative",
                   }}
                 >
-                  {cell === 2 && !isPlayer && (
+                  {cell === 2 && !isPlayer && !collectedCoins?.has(rowIndex * GRID_SIZE + cellIndex) && (
                     <div
                       style={{
                         position: "absolute",
                         width: "15%",
                         height: "15%",
-                        backgroundColor: "yellow",
+                        backgroundColor: "white",
                         borderRadius: "50%",
                         top: "50%",
                         left: "50%",
