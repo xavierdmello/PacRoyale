@@ -49,7 +49,7 @@ importers:
         version: 3.7.1
     devDependencies:
       '@eslint/js':
-        specifier: ^9.15.0
+        specifier: ^9.16.0
         version: 9.16.0
       '@types/react':
         specifier: ^18.3.12
@@ -64,7 +64,7 @@ importers:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
       eslint:
-        specifier: ^9.15.0
+        specifier: ^9.16.0
         version: 9.16.0(jiti@1.21.6)
       eslint-plugin-react-hooks:
         specifier: ^5.0.0
@@ -82,10 +82,10 @@ importers:
         specifier: ^3.4.15
         version: 3.4.15
       typescript:
-        specifier: ~5.6.2
+        specifier: ~5.6.3
         version: 5.6.3
       typescript-eslint:
-        specifier: ^8.15.0
+        specifier: ^8.16.0
         version: 8.16.0(eslint@9.16.0(jiti@1.21.6))(typescript@5.6.3)
       vite:
         specifier: ^6.0.1
@@ -3324,7 +3324,7 @@ snapshots:
     dependencies:
       '@adraffy/ens-normalize': 1.11.0
       '@noble/curves': 1.6.0
-      '@noble/hashes': 1.6.1
+      '@noble/hashes': 1.5.0
       '@scure/bip32': 1.5.0
       '@scure/bip39': 1.4.0
       abitype: 1.0.6(typescript@5.6.3)(zod@3.23.8)
@@ -3727,7 +3727,7 @@ snapshots:
   webauthn-p256@0.0.10:
     dependencies:
       '@noble/curves': 1.6.0
-      '@noble/hashes': 1.6.1
+      '@noble/hashes': 1.5.0
 
   webidl-conversions@3.0.1: {}
 

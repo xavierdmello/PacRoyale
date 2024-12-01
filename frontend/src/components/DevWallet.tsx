@@ -143,6 +143,8 @@ export function DevWallet() {
     window.location.reload();
   };
 
+
+
   return (
     <nav className="flex justify-between items-center px-8 py-4 bg-gray-900 text-white shadow-md">
       <div className="text-xl font-bold">

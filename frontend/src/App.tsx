@@ -1,59 +1,51 @@
 import "./App.css";
 
 import { DevWallet } from "./components/DevWallet";
-import { useReadContract } from "@starknet-react/core";
+import { Provider, Contract, RpcProvider } from "starknet";
 import Navbar from "./components/Navbar";
 import LandingPage from "./components/LandingPage";
 import Board from "./components/Board";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
-
-// Define the contract ABI for the specific functions we need
-const pacRoyaleAbi = [
-  {
-    inputs: [],
-    name: "get_map",
-    outputs: [{ type: "core::array::Array::core::felt252" }],
-    state_mutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      { name: "x", type: "core::integer::u64" },
-      { name: "y", type: "core::integer::u64" }
-    ],
-    name: "get_map_value",
-    outputs: [{ type: "core::felt252" }],
-    state_mutability: "view",
-    type: "function",
-  }
-] as const;
-
-
 
 function App() {
   const [page, setPage] = useState("landing");
-  const { data: mapData } = useReadContract({
-    address: PACROYALE_ADDRESS,
-    abi: pacRoyaleAbi,
-    functionName: "get_map",
-  });
+  const [boardData, setBoardData] = useState([]);
 
-  const { data: sampleMapValue } = useReadContract({
-    address: PACROYALE_ADDRESS,
-    abi: pacRoyaleAbi,
-    functionName: "get_map_value",
-    args: [0, 0]
-  });
+  useEffect(() => {
+    const fetchBoardData = async () => {
+      try {
+        const provider = new RpcProvider({
+          nodeUrl: "http://100.74.177.49:5050",
+        });
 
-  console.log("Map data:", mapData);
-  console.log("Sample map value at (0,0):", sampleMapValue);
+        const response = await provider.callContract({
+          contractAddress:
+            "0x028dc8c9105335b2b78b451dc031e6fa0fac3a4ca7b5d2d36ddb63dbb61c0e46",
+          entrypoint: "get_map",
+        });
 
+        if (response) {
+          // Parse hex values to integers
+          const parsedData = response.slice(1).map((hex: string) =>
+            parseInt(hex, 16)
+          );
+          console.log("Parsed board data:", parsedData);
+          setBoardData(parsedData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch board data:", error);
+      }
+    };
+
+    fetchBoardData();
+  }, []);
+  console.log(boardData);
   return (
     <>
       <DevWallet />
       {page === "landing" && <LandingPage setPage={setPage} />}
-      {page === "board" && <Board board={mapData || []} />}
+      {page === "board" && <Board board={boardData} />}
     </>
   );
 }
