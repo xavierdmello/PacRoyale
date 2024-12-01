@@ -207,15 +207,15 @@ function App() {
             type: "function",
             inputs: [],
             outputs: [],
-            stateMutability: "external",
+            state_mutability: "external",
           },
         ],
         PACROYALE_ADDRESS,
         account,
         { cairoVersion: "2" }
       );
-      const calldata = CallData.compile([]);
-      const result = await contract.init_game(calldata);
+
+      const result = await contract.init_game();
       console.log("Initialized game:", result);
     } catch (error) {
       console.error("Failed to initialize game:", error);
