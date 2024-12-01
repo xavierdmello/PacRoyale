@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import './crt.css';
+import "./crt.css";
 import SkinOverlay from "../assets/ArcadeSkinOverlay.png";
 import chompSoundFile from "../assets/pacman_chomp.wav";
 import beginningSoundFile from "../assets/pacman_beginning.wav";
@@ -15,17 +15,25 @@ interface BoardProps {
   handleMove: (direction: number) => void;
 }
 
-const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => {
+const Board: React.FC<BoardProps> = ({
+  board,
+  playerPositions,
+  handleMove,
+}) => {
   const GRID_SIZE = 23;
-  const [previousPositions, setPreviousPositions] = useState<Map<string, [number, number]>>(new Map());
-  const [playerDirections, setPlayerDirections] = useState<Map<string, 'right' | 'left' | 'up' | 'down'>>(new Map());
+  const [previousPositions, setPreviousPositions] = useState<
+    Map<string, [number, number]>
+  >(new Map());
+  const [playerDirections, setPlayerDirections] = useState<
+    Map<string, "right" | "left" | "up" | "down">
+  >(new Map());
   const lastMoveTime = useRef<number>(0);
 
   useEffect(() => {
     beginningSound.play().catch((err) => {
       console.warn("Error playing beginning sound:", err);
     });
-    
+
     chompSound.play().catch((err) => {
       console.warn("Error playing chomp sound:", err);
     });
@@ -36,13 +44,16 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
     };
   }, []);
 
-  const debouncedHandleMove = useCallback((direction: number) => {
-    const now = Date.now();
-    if (now - lastMoveTime.current >= 350) {
-      handleMove(direction);
-      lastMoveTime.current = now;
-    }
-  }, [handleMove]);
+  const debouncedHandleMove = useCallback(
+    (direction: number) => {
+      const now = Date.now();
+      if (now - lastMoveTime.current >= 350) {
+        handleMove(direction);
+        lastMoveTime.current = now;
+      }
+    },
+    [handleMove]
+  );
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -70,30 +81,34 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
     playerPositions.forEach((pos, playerIndex) => {
       const [x, y] = pos;
       const prevPos = previousPositions.get(playerIndex.toString());
-      
+
       if (prevPos) {
         const [prevX, prevY] = prevPos;
         if (x !== prevX || y !== prevY) {
-          let direction: 'right' | 'left' | 'up' | 'down' = 'right';
-          
-          if (x > prevX) direction = 'right';
-          else if (x < prevX) direction = 'left';
-          else if (y > prevY) direction = 'down';
-          else if (y < prevY) direction = 'up';
-          
-          setPlayerDirections(prev => new Map(prev).set(playerIndex.toString(), direction));
+          let direction: "right" | "left" | "up" | "down" = "right";
+
+          if (x > prevX) direction = "right";
+          else if (x < prevX) direction = "left";
+          else if (y > prevY) direction = "down";
+          else if (y < prevY) direction = "up";
+
+          setPlayerDirections((prev) =>
+            new Map(prev).set(playerIndex.toString(), direction)
+          );
         }
       }
-      
-      setPreviousPositions(prev => new Map(prev).set(playerIndex.toString(), [x, y]));
+
+      setPreviousPositions((prev) =>
+        new Map(prev).set(playerIndex.toString(), [x, y])
+      );
     });
   }, [playerPositions]);
 
   return (
-    <div 
+    <div
       className="crt"
-      style={{ 
-        display: "flex", 
+      style={{
+        display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
@@ -111,22 +126,29 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-      }}>
-      <div style={{
-        width: "min(75vh, 75vw)",
-        height: "min(75vh, 75vw)",
-        display: "flex",
-        flexDirection: "column",
-      }}>
+      }}
+    >
+      <div
+        style={{
+          width: "min(75vh, 75vw)",
+          height: "min(75vh, 75vw)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {[...Array(GRID_SIZE)].map((_, rowIndex) => (
-          <div key={rowIndex} style={{ 
-            display: "flex",
-            flex: 1,
-          }}>
+          <div
+            key={rowIndex}
+            style={{
+              display: "flex",
+              flex: 1,
+            }}
+          >
             {[...Array(GRID_SIZE)].map((_, cellIndex) => {
               const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
               const isPlayer = playerPositions.some(
-                ([px, py, _, isDead]) => px === cellIndex && py === rowIndex && !isDead
+                ([px, py, _, isDead]) =>
+                  px === cellIndex && py === rowIndex && !isDead
               );
 
               return (
@@ -135,7 +157,8 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
                   style={{
                     flex: 1,
                     aspectRatio: "1/1",
-                    backgroundColor: cell === 2 ? "black" : cell === 0 ? "black" : "blue",
+                    backgroundColor:
+                      cell === 2 ? "black" : cell === 0 ? "black" : cell === 3 ? "black" : "blue",
                     border: "1px solid #333",
                     position: "relative",
                   }}
@@ -154,43 +177,84 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions, handleMove }) => 
                       }}
                     />
                   )}
+                  {cell === 3 && !isPlayer && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        width: "35%",
+                        height: "35%",
+                        backgroundColor: "white",
+                        borderRadius: "50%",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    />
+                  )}
                   {isPlayer && (
                     <img
                       src={PacmanImage}
                       style={{
                         position: "absolute",
-                        width: "70%",
-                        height: "70%",
+                        width: (() => {
+                          const playerIndex = playerPositions.findIndex(
+                            ([px, py]) => px === cellIndex && py === rowIndex
+                          );
+                          const [, , isPoweredUp] = playerPositions[playerIndex];
+                          return isPoweredUp ? "140%" : "70%";
+                        })(),
+                        height: (() => {
+                          const playerIndex = playerPositions.findIndex(
+                            ([px, py]) => px === cellIndex && py === rowIndex
+                          );
+                          const [, , isPoweredUp] = playerPositions[playerIndex];
+                          return isPoweredUp ? "140%" : "70%";
+                        })(),
                         top: "50%",
                         left: "50%",
                         filter: (() => {
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const [, , isPoweredUp] = playerPositions[playerIndex];
+                          const [, , isPoweredUp] =
+                            playerPositions[playerIndex];
                           const baseColor = (() => {
                             switch (playerIndex) {
-                              case 0: return 'brightness(0) saturate(100%) invert(88%) sepia(61%) saturate(4000%) hue-rotate(360deg)';
-                              case 1: return 'brightness(0) saturate(100%) invert(50%) sepia(85%) saturate(1267%) hue-rotate(357deg)';
-                              case 2: return 'brightness(0) saturate(100%) invert(23%) sepia(91%) saturate(6453%) hue-rotate(343deg)';
-                              case 3: return 'brightness(0) saturate(100%) invert(90%) sepia(95%) saturate(9938%) hue-rotate(122deg)';
-                              default: return 'brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3000%) hue-rotate(1960deg)';
+                              case 0:
+                                return "brightness(0) saturate(100%) invert(88%) sepia(61%) saturate(4000%) hue-rotate(360deg)";
+                              case 1:
+                                return "brightness(0) saturate(100%) invert(50%) sepia(85%) saturate(1267%) hue-rotate(357deg)";
+                              case 2:
+                                return "brightness(0) saturate(100%) invert(23%) sepia(91%) saturate(6453%) hue-rotate(343deg)";
+                              case 3:
+                                return "brightness(0) saturate(100%) invert(90%) sepia(95%) saturate(9938%) hue-rotate(122deg)";
+                              default:
+                                return "brightness(0) saturate(100%) invert(18%) sepia(35%) saturate(3000%) hue-rotate(1960deg)";
                             }
                           })();
-                          return isPoweredUp ? baseColor + ' brightness(1.5)' : baseColor;
+                          return isPoweredUp
+                            ? baseColor + " brightness(1.5)"
+                            : baseColor;
                         })(),
                         transform: (() => {
                           const playerIndex = playerPositions.findIndex(
                             ([px, py]) => px === cellIndex && py === rowIndex
                           );
-                          const direction = playerDirections.get(playerIndex.toString());
+                          const direction = playerDirections.get(
+                            playerIndex.toString()
+                          );
                           return `translate(-50%, -50%) rotate(${
-                            direction === 'right' ? '0deg' :
-                            direction === 'down' ? '90deg' :
-                            direction === 'left' ? '180deg' :
-                            direction === 'up' ? '270deg' : '0deg'
+                            direction === "right"
+                              ? "0deg"
+                              : direction === "down"
+                              ? "90deg"
+                              : direction === "left"
+                              ? "180deg"
+                              : direction === "up"
+                              ? "270deg"
+                              : "0deg"
                           })`;
-                        })()
+                        })(),
                       }}
                       alt="Player"
                     />
