@@ -8,6 +8,7 @@ trait IPacRoyale<TContractState> {
     fn get_map(self: @TContractState, game_id: u64) -> Array<felt252>;
     fn init_game(ref self: TContractState);
     fn get_top_game_id(self: @TContractState) -> u64;
+    fn get_winner(self: @TContractState, game_id: u64) -> starknet::ContractAddress;
 }
 
 #[starknet::contract]
@@ -27,7 +28,8 @@ mod PacRoyale {
         y: u64,
         poweredUp: bool,
         powerup_end: u64,  // Timestamp when powerup ends
-        isDead: bool  // New field
+        isDead: bool,  // New field
+        balance: u64  // New field
     }
 
     #[storage]
@@ -37,6 +39,7 @@ mod PacRoyale {
         players: Map<u64, Vec<ContractAddress>>,
         spawn_points: Map<u64, Vec<(u64, u64)>>,
         top_game_id: u64,
+        winner: Map<u64, ContractAddress>  // New field to track winner per game
     }
 
     #[abi(embed_v0)]
@@ -60,8 +63,15 @@ mod PacRoyale {
             let spawn_point = self.spawn_points.entry(game_id).at(player_no).read();
             let (x, y) = spawn_point;
 
-            // Create new player with default powerup values
-            let player = Player { x, y, poweredUp: false, powerup_end: 0, isDead: false };
+            // Create new player with default values including balance
+            let player = Player { 
+                x, 
+                y, 
+                poweredUp: false, 
+                powerup_end: 0, 
+                isDead: false,
+                balance: 0 
+            };
             self.player_map.entry(game_id).entry(caller).write(player);
             self.players.entry(game_id).append().write(caller);
         }
@@ -154,7 +164,7 @@ mod PacRoyale {
                 new_x += 1;
             }
 
-            // Check if the new position is a powerup
+            // Check if the new position is a coin or powerup
             let map_value = self.get_map_value(game_id, new_x, new_y);
             if map_value == 3 {
                 // Set powerup
@@ -162,6 +172,11 @@ mod PacRoyale {
                 player.powerup_end = current_time + 10; // 10 seconds from now
                 
                 // Clear powerup from map
+                let index = new_y * MAP_WIDTH + new_x;
+                self.map.entry(game_id).at(index).write(0);
+            } else if map_value == 2 {  // Coin collection
+                // Increment balance and clear coin
+                player.balance += 1;
                 let index = new_y * MAP_WIDTH + new_x;
                 self.map.entry(game_id).at(index).write(0);
             } else {
@@ -200,13 +215,42 @@ mod PacRoyale {
                 i += 1;
             };
 
-            // Update player position
+            // Check win condition
+            let mut alive_count = 0;
+            let mut last_alive_player = caller;
+            let mut i = 0;
+            let players_len = self.players.entry(game_id).len();
+            
+            if players_len > 1 {
+                loop {
+                    if i >= players_len {
+                        break;
+                    }
+                    let player_address = self.players.entry(game_id).at(i).read();
+                    let current_player = self.player_map.entry(game_id).entry(player_address).read();
+                    
+                    if !current_player.isDead {
+                        alive_count += 1;
+                        last_alive_player = player_address;
+                    }
+                    
+                    i += 1;
+                };
+
+                // If only one player is alive, they're the winner
+                if alive_count == 1 {
+                    self.winner.entry(game_id).write(last_alive_player);
+                }
+            }
+
+            // Update player position with new balance
             let new_player = Player { 
                 x: new_x, 
                 y: new_y, 
                 poweredUp: player.poweredUp, 
                 powerup_end: player.powerup_end,
-                isDead: should_die 
+                isDead: should_die,
+                balance: player.balance 
             };
             self.player_map.entry(game_id).entry(caller).write(new_player);
         }
@@ -267,6 +311,11 @@ mod PacRoyale {
         self.spawn_points.entry(game_id).append().write((21, 1));
         self.spawn_points.entry(game_id).append().write((1, 21));
         self.spawn_points.entry(game_id).append().write((21, 21));
+    }
+
+    // Add getter for winner
+    fn get_winner(self: @ContractState, game_id: u64) -> ContractAddress {
+        self.winner.entry(game_id).read()
     }
     }
 
