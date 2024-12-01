@@ -18,6 +18,56 @@ function App() {
     nodeUrl: "http://100.74.177.49:5050",
   });
 
+  // Separate function to fetch player positions
+  const fetchPlayerPositions = async () => {
+    try {
+      console.log("Fetching positions..."); // Debug log
+      const positionsResponse = await provider.callContract({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "get_positions",
+      });
+
+      if (positionsResponse) {
+        const positions = positionsResponse.slice(1).map((arr: any) => [
+          parseInt(arr[0], 16),
+          parseInt(arr[1], 16)
+        ]) as [number, number][];
+        setPlayerPositions(positions);
+        
+        // Log positions with formatted output
+        if (positions.length > 0) {
+          console.log('Current Players:');
+          positions.forEach((pos, index) => {
+            console.log(`Player ${index + 1}: (${pos[0]}, ${pos[1]})`);
+          });
+          console.log('------------------------');
+        } else {
+          console.log('No players currently in game');
+          console.log('------------------------');
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch positions:", error);
+    }
+  };
+
+  // Set up interval for position updates
+  useEffect(() => {
+    console.log("Page changed to:", page); // Debug log
+    if (page === "board") {
+      console.log("Starting position updates interval"); // Debug log
+      const intervalId = setInterval(fetchPlayerPositions, 100);
+      
+      // Initial fetch
+      fetchPlayerPositions();
+      
+      return () => {
+        console.log("Cleaning up interval"); // Debug log
+        clearInterval(intervalId);
+      };
+    }
+  }, [page]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -31,25 +81,11 @@ function App() {
           entrypoint: "get_map",
         });
 
-        // Fetch player positions
-        const positionsResponse = await provider.callContract({
-          contractAddress: PACROYALE_ADDRESS,
-          entrypoint: "get_positions",
-        });
-
         if (boardResponse) {
           const parsedData = boardResponse.slice(1).map((hex: string) =>
             parseInt(hex, 16)
           );
           setBoardData(parsedData);
-        }
-
-        if (positionsResponse) {
-          const positions = positionsResponse.slice(1).map((arr: any) => [
-            parseInt(arr[0], 16),
-            parseInt(arr[1], 16)
-          ]) as [number, number][];
-          setPlayerPositions(positions);
         }
       } catch (error) {
         console.error("Failed to fetch data:", error);
