@@ -10,6 +10,13 @@ import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
 import { useAccount } from "@starknet-react/core";
 import GameEndModal from "./components/GameEndModal";
 
+// Helper function to normalize addresses (add at the top of the file)
+const normalizeAddress = (address: string | undefined): string => {
+  if (!address) return '';
+  // Remove '0x' prefix and any leading zeros after 0x
+  return address.replace('0x0', '0x').toLowerCase();
+};
+
 function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
@@ -272,7 +279,8 @@ function App() {
       return () => clearInterval(intervalId);
     }
   }, [page, gameId]); // Depend on page and gameId
-
+  console.log("Address mine:", address?.toLowerCase());
+  console.log("Winner:", winner?.toLowerCase());
   return (
     <>
       <DevWallet />{" "}
@@ -326,7 +334,7 @@ function App() {
       {showGameOverModal && (
         <GameEndModal
           isOpen={showGameOverModal}
-          isWinner={address?.toLowerCase() === winner?.toLowerCase()}
+          isWinner={normalizeAddress(address) === normalizeAddress(winner)}
           tokenAmount={winningBalance}
           onClose={() => setShowGameOverModal(false)}
           winnerText={`Player ${winningPlayerNumber} Won!`}
