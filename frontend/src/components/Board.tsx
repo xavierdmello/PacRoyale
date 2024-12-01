@@ -52,13 +52,13 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
         <div key={rowIndex} style={{ display: "flex" }}>
           {[...Array(GRID_SIZE)].map((_, cellIndex) => {
             const cell = board[rowIndex * GRID_SIZE + cellIndex] || 0;
-<<<<<<< HEAD
+
             const isPacman = rowIndex === pacmanPos.y && cellIndex === pacmanPos.x;
-=======
+
             const isPlayer = playerPositions.some(
               ([x, y]) => x === cellIndex && y === rowIndex
             );
->>>>>>> 0165c19 (a)
+
 
             return (
               <div
@@ -66,24 +66,15 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                 style={{
                   width: "32px",
                   height: "32px",
-<<<<<<< HEAD
-                  backgroundColor: isPacman 
-                    ? "yellow"
-=======
                   backgroundColor: isPlayer
                     ? "red"
->>>>>>> 0165c19 (a)
                     : cell === 2
                     ? "black"
                     : cell === 0
                     ? "black"
                     : "blue",
                   border: "1px solid #333",
-<<<<<<< HEAD
                   position: "relative",
-=======
-                  position: (cell === 2 || isPlayer) ? "relative" : "static",
->>>>>>> 0165c19 (a)
                 }}
               >
                 {cell === 2 && !isPacman && (
@@ -100,22 +91,13 @@ const Board: React.FC<BoardProps> = ({ board, playerPositions }) => {
                     }}
                   />
                 )}
-<<<<<<< HEAD
                 {isPacman && (
-=======
-                {isPlayer && (
->>>>>>> 0165c19 (a)
                   <div
                     style={{
                       position: "absolute",
                       width: "20px",
                       height: "20px",
-<<<<<<< HEAD
                       backgroundColor: "yellow",
-=======
-                      backgroundColor: "red",
-                      borderRadius: "50%",
->>>>>>> 0165c19 (a)
                       top: "50%",
                       left: "50%",
                       transform: "translate(-50%, -50%)",
