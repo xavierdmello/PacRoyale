@@ -12,7 +12,9 @@ import { useAccount } from "@starknet-react/core";
 function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
-  const [playerPositions, setPlayerPositions] = useState<[number, number, boolean, boolean][]>([]);
+  const [playerPositions, setPlayerPositions] = useState<
+    [number, number, boolean, boolean][]
+  >([]);
   const { address, account } = useAccount();
   const [gameId, setGameId] = useState(1);
   const provider = useMemo(
@@ -31,7 +33,7 @@ function App() {
       const positionsResponse = await provider.callContract({
         contractAddress: PACROYALE_ADDRESS,
         entrypoint: "get_positions",
-        calldata: CallData.compile([gameId]),
+        calldata: CallData.compile({ game_id: gameId }),
       });
 
       if (positionsResponse) {
@@ -78,7 +80,7 @@ function App() {
         const boardResponse = await provider.callContract({
           contractAddress: PACROYALE_ADDRESS,
           entrypoint: "get_map",
-          calldata: CallData.compile([gameId]),
+          calldata: CallData.compile({ game_id: gameId }),
         });
 
         console.log("Board response:", boardResponse);
@@ -111,23 +113,12 @@ function App() {
         return;
       }
 
-      const contract = new Contract(
-        [
-          {
-            name: "add_player",
-            type: "function",
-            inputs: [{ name: "game_id", type: "u64" }],
-            outputs: [{ name: "", type: "felt252" }],
-            stateMutability: "external",
-          },
-        ],
-        PACROYALE_ADDRESS,
-        account
-      );
+      const result = await account.execute({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "add_player",
+        calldata: CallData.compile({ game_id: gameId }),
+      });
 
-      // Use CallData.compile to properly format the u64 argument
-      const calldata = CallData.compile([gameId]);
-      const result = await contract.add_player(calldata);
       console.log("Added player:", result);
     } catch (error) {
       console.error("Failed to add player:", error);
@@ -141,27 +132,23 @@ function App() {
         return;
       }
 
-      const contract = new Contract(
-        [
-          {
-            name: "move",
-            type: "function",
-            inputs: [
-              { name: "game_id", type: "u64" },
-              { name: "direction", type: "felt252" },
-            ],
-            outputs: [],
-            state_mutability: "external",
-          },
-        ],
-        PACROYALE_ADDRESS,
-        account
-      );
+      console.log("Moving with params:", {
+        game_id: gameId,
+        direction: direction,
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "move"
+      });
 
-      // Use CallData.compile to properly format both arguments
-      const calldata = CallData.compile([gameId, direction]);
-      const result = await contract.move(calldata);
-      console.log("Moved:", result);
+      const result = await account.execute({
+        contractAddress: PACROYALE_ADDRESS,
+        entrypoint: "move",
+        calldata: CallData.compile({ 
+          game_id: gameId,
+          direction: direction 
+        }),
+      });
+
+      console.log("Move transaction:", result);
     } catch (error) {
       console.error("Failed to move:", error);
     }
@@ -208,9 +195,9 @@ function App() {
       const result = await account.execute({
         contractAddress: PACROYALE_ADDRESS,
         entrypoint: "init_game",
-        calldata: CallData.compile([])
+        calldata: CallData.compile([]),
       });
-      
+
       console.log("Initialized game:", result);
     } catch (error) {
       console.error("Failed to initialize game:", error);
