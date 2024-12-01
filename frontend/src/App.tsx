@@ -283,7 +283,7 @@ function App() {
   console.log("Winner:", winner?.toLowerCase());
   return (
     <>
-      <DevWallet />{" "}
+      <DevWallet playerPositions={playerPositions} />{" "}
       {page == "board" && (
         <div className="fixed left-4 top-20 flex flex-col gap-2 z-50">
           <div className="text-white">Game ID: {gameId}</div>
