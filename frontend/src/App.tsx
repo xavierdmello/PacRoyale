@@ -8,6 +8,7 @@ import Board from "./components/Board";
 import { useState, useEffect, useMemo } from "react";
 import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
 import { useAccount } from "@starknet-react/core";
+import GameEndModal from "./components/GameEndModal";
 
 function App() {
   const [page, setPage] = useState("landing");
@@ -24,6 +25,9 @@ function App() {
   );
   const [topGameId, setTopGameId] = useState(1);
   const [winner, setWinner] = useState<string | null>(null);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
+  const [winningPlayerNumber, setWinningPlayerNumber] = useState<number | null>(null);
+  const [winningBalance, setWinningBalance] = useState(0);
 
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
@@ -232,6 +236,19 @@ function App() {
         const winnerAddress = winnerResponse[0];
         setWinner(winnerAddress);
         console.log("Game over! Winner:", winnerAddress);
+
+        // Find the player number by matching the winner address with positions
+        const playerIndex = playerPositions.findIndex((_, index) => {
+          const playerAddress = playerPositions[index * 5 + 4]; // Get the address from position data
+          return playerAddress === winnerAddress;
+        });
+
+        if (playerIndex !== -1) {
+          setWinningPlayerNumber(playerIndex + 1); // Add 1 to make it 1-based
+          setWinningBalance(playerPositions[playerIndex * 5 + 4]); // Get the balance
+        }
+
+        setShowGameOverModal(true);
       }
     } catch (error) {
       console.error("Failed to fetch winner:", error);
@@ -301,6 +318,15 @@ function App() {
             </button>
           </div>
         </div>
+      )}
+      {showGameOverModal && (
+        <GameEndModal
+          isOpen={showGameOverModal}
+          isWinner={address === winner}
+          tokenAmount={winningBalance}
+          onClose={() => setShowGameOverModal(false)}
+          winnerText={`Player ${winningPlayerNumber} Won!`}
+        />
       )}
     </>
   );

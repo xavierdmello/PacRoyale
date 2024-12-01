@@ -8,13 +8,15 @@ interface GameEndModalProps {
   isWinner: boolean;
   tokenAmount: number;
   onClose: () => void;
+  winnerText?: string;
 }
 
 const GameEndModal: React.FC<GameEndModalProps> = ({ 
   isOpen, 
   isWinner, 
   tokenAmount,
-  onClose 
+  onClose,
+  winnerText 
 }) => {
   // Using green-500 (#22c55e) - brighter than before
   const primaryColor = isWinner ? '#22c55e' : '#ff0000';
@@ -84,7 +86,7 @@ const GameEndModal: React.FC<GameEndModalProps> = ({
               className="text-center mb-8"
             >
               <p className="text-gray-400 mb-2">
-                {isWinner ? "You won" : "You lost"}
+                {winnerText || (isWinner ? "You won" : "You lost")}
               </p>
               <p className="text-3xl font-bold" style={{ color: primaryColor }}>
                 {tokenAmount} TOKENS
