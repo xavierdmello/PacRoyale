@@ -37,6 +37,11 @@ mod PacRoyale {
     #[abi(embed_v0)]
     impl PacRoyaleImpl of super::IPacRoyale<ContractState> {
         fn add_player(ref self: ContractState) {
+            // Check if player already exists
+            let caller = get_caller_address();
+            let existing_player = self.player_map.entry(caller).try_read();
+            assert(existing_player.is_none(), 'Player already exists');
+
             let player_no = self.players.len();
             assert(player_no < 4, 'Game is full');
             let spawn_point = self.spawn_points.at(player_no).read();
@@ -44,7 +49,7 @@ mod PacRoyale {
 
             // Create new player
             let player = Player { x, y };
-            self.player_map.entry(get_caller_address()).write(player);
+            self.player_map.entry(caller).write(player);
             self.players.append().write(get_caller_address());
         }
 
