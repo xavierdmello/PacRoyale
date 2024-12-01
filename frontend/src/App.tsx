@@ -94,7 +94,14 @@ function App() {
       }
     };
 
+    // Initial fetch
     fetchData();
+
+    // Set up interval for map updates
+    const intervalId = setInterval(fetchData, 1000);
+
+    // Cleanup
+    return () => clearInterval(intervalId);
   }, [gameId, provider]);
 
   const handleAddPlayer = async () => {
