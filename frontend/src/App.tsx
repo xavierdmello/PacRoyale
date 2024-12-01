@@ -21,30 +21,25 @@ function App() {
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
     try {
-      console.log("Fetching positions..."); // Debug log
+      console.log("Fetching positions...");
       const positionsResponse = await provider.callContract({
         contractAddress: PACROYALE_ADDRESS,
         entrypoint: "get_positions",
       });
 
       if (positionsResponse) {
-        const positions = positionsResponse.slice(1).map((arr: any) => [
-          parseInt(arr[0], 16),
-          parseInt(arr[1], 16)
-        ]) as [number, number][];
-        setPlayerPositions(positions);
+        console.log("Raw response:", positionsResponse);
         
-        // Log positions with formatted output
-        if (positions.length > 0) {
-          console.log('Current Players:');
-          positions.forEach((pos, index) => {
-            console.log(`Player ${index + 1}: (${pos[0]}, ${pos[1]})`);
-          });
-          console.log('------------------------');
-        } else {
-          console.log('No players currently in game');
-          console.log('------------------------');
+        // Process pairs of values for x,y coordinates
+        const positions = [];
+        for (let i = 0; i < positionsResponse.length; i += 2) {
+          const x = Number(BigInt(positionsResponse[i]));
+          const y = Number(BigInt(positionsResponse[i + 1]));
+          positions.push([x, y]);
         }
+
+        console.log('Processed positions:', positions);
+        setPlayerPositions(positions);
       }
     } catch (error) {
       console.error("Failed to fetch positions:", error);
