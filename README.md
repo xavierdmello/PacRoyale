@@ -7,13 +7,14 @@ Built on [Starknet](https://www.starknet.io/)
 More info: https://dorahacks.io/buidl/20381
 
 # Getting Started
-1. Install Scarb, Starkli, and Starknet Foundry: https://docs.starknet.io/quick-start/environment-setup/
-2. Install Starknet Devnet: https://0xspaceshard.github.io/starknet-devnet-rs/
-3. Run Starknet Devnet: `starknet-devnet --seed 0`
-4. Build contracts:
+1. Install Rust: https://www.rust-lang.org/tools/install
+2. Install Scarb, Starkli, and Starknet Foundry: https://docs.starknet.io/quick-start/environment-setup/
+3. Install Starknet Devnet: https://0xspaceshard.github.io/starknet-devnet-rs/
+4. Run Starknet Devnet: `starknet-devnet --seed 0`
+5. Build contracts:
       - `cd ./cario`
       - `scarb build`
-5. Deploy contracts:
+6. Deploy contracts:
       - `starkli declare target/dev/hello_world_PacRoyale.contract_class.json --rpc http://127.0.0.1:5050 --account ../account0_account.json --keystore ../account0_keystore.json`
       - Take note of the outputted class hash and replace CLASS_HASH with it in the next step
       - `starkli deploy CLASS_HASH --rpc http://127.0.0.1:5050 --account ../account0_account.json --keystore ../account0_keystore.json`
@@ -23,3 +24,5 @@ More info: https://dorahacks.io/buidl/20381
       - `pnpm i`
 9. Start app: `pnpm dev`
 10. Head to the displayed url and play! ex. http://localhost:5173/ 
+
+You can have friends join your game by using [Tailscale](https://tailscale.com/) to VPN into the host computer and setting RPC_URL inside `frontend/sec/components/` to their IP address.
