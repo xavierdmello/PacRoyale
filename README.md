@@ -13,7 +13,7 @@ More info: https://dorahacks.io/buidl/20381
 4. Run Starknet Devnet: `starknet-devnet --seed 0`
 5. Deploy your account:
    - `starkli signer keystore from-key account0_keystore.json`
-   - Use 0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9 (Starknet default test account) as the private key
+   - Use `0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9` (Starknet default test account) as the private key
    - `starkli account fetch 0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691 --rpc http://127.0.0.1:5050 --output account0_account.json`
 6. Build contracts:
       - `cd ./cario`
