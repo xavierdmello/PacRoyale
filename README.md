@@ -25,4 +25,4 @@ More info: https://dorahacks.io/buidl/20381
 9. Start app: `pnpm dev`
 10. Head to the displayed url and play! ex. http://localhost:5173/ 
 
-You can have friends join your game by using [Tailscale](https://tailscale.com/) to VPN into the host computer and setting RPC_URL inside `frontend/src/components/` to their IP address.
+You can have friends join your game by using [Tailscale](https://tailscale.com/) to VPN into the host computer and setting RPC_URL inside [`frontend/src/components/RPC.tsx`](https://github.com/xavierdmello/PacRoyale/blob/main/frontend/src/components/RPC.tsx) to their IP address.
