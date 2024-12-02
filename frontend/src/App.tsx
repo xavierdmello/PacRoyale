@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from "react";
 import { PACROYALE_ADDRESS } from "./components/ContractAddresses";
 import { useAccount } from "@starknet-react/core";
 import GameEndModal from "./components/GameEndModal";
+import { RPC_URL } from "./components/RPC";
 
 // Helper function to normalize addresses (add at the top of the file)
 const normalizeAddress = (address: string | undefined): string => {
@@ -28,7 +29,7 @@ function App() {
   const provider = useMemo(
     () =>
       new RpcProvider({
-        nodeUrl: "http://127.0.0.1:5050",
+        nodeUrl: RPC_URL,
       }),
     []
   );

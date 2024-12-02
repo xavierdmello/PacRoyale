@@ -9,11 +9,12 @@ import {
   useInjectedConnectors,
   voyager,
 } from "@starknet-react/core";
+import { RPC_URL } from "./RPC";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const provider = jsonRpcProvider({
     rpc: (chain) => ({
-      nodeUrl: "http://127.0.0.1:5050",
+      nodeUrl: RPC_URL,
     }),
   });
 

@@ -4,6 +4,7 @@ import { AccountInterface, ProviderInterface } from "starknet";
 import { RpcProvider, Account, Contract, CallData, constants } from "starknet";
 import { useEffect, useState } from "react";
 import SwapModal from "./SwapModal";
+import { RPC_URL } from "./RPC";
 import {
   PACROYALE_ADDRESS,
   PACTOKEN_ADDRESS,
@@ -116,7 +117,7 @@ class DevnetConnector extends Connector {
   constructor(account: (typeof PREFUNDED_ACCOUNTS)[0]) {
     super();
     this.provider = new RpcProvider({
-      nodeUrl: "http://127.0.0.1:5050",
+      nodeUrl: RPC_URL,
       chainId: constants.StarknetChainId.SN_GOERLI,
     });
     this.selectedAccount = account;
