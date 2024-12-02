@@ -13,7 +13,7 @@ import {
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const provider = jsonRpcProvider({
     rpc: (chain) => ({
-      nodeUrl: "http://100.74.177.49:5050",
+      nodeUrl: "http://127.0.0.1:5050",
     }),
   });
 
