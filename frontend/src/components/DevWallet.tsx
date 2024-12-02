@@ -143,9 +143,10 @@ class DevnetConnector extends Connector {
 
 interface DevWalletProps {
   playerPositions: [number, number, boolean, boolean, number][];
+  isInGame: boolean;
 }
 
-export function DevWallet({ playerPositions }: DevWalletProps) {
+export function DevWallet({ playerPositions, isInGame }: DevWalletProps) {
   const { connect } = useConnect();
   const { address, account } = useAccount();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -379,6 +380,9 @@ export function DevWallet({ playerPositions }: DevWalletProps) {
               <div className="bg-gray-800 px-4 py-2 rounded-lg">
                 <span className="text-gray-400">
                   {(() => {
+                    if (!isInGame) {
+                      return "50";
+                    }
                     const playerIndex = playerPositions.findIndex(
                       (_, index) =>
                         normalizeAddress(address) ===

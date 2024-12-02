@@ -12,15 +12,17 @@ import GameEndModal from "./components/GameEndModal";
 
 // Helper function to normalize addresses (add at the top of the file)
 const normalizeAddress = (address: string | undefined): string => {
-  if (!address) return '';
+  if (!address) return "";
   // Remove '0x' prefix and any leading zeros after 0x
-  return address.replace('0x0', '0x').toLowerCase();
+  return address.replace("0x0", "0x").toLowerCase();
 };
 
 function App() {
   const [page, setPage] = useState("landing");
   const [boardData, setBoardData] = useState([]);
-  const [playerPositions, setPlayerPositions] = useState<[number, number, boolean, boolean, number][]>([]);
+  const [playerPositions, setPlayerPositions] = useState<
+    [number, number, boolean, boolean, number][]
+  >([]);
   const { address, account } = useAccount();
   const [gameId, setGameId] = useState(1);
   const provider = useMemo(
@@ -33,8 +35,11 @@ function App() {
   const [topGameId, setTopGameId] = useState(1);
   const [winner, setWinner] = useState<string | null>(null);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
-  const [winningPlayerNumber, setWinningPlayerNumber] = useState<number | null>(null);
+  const [winningPlayerNumber, setWinningPlayerNumber] = useState<number | null>(
+    null
+  );
   const [winningBalance, setWinningBalance] = useState(0);
+  const [isInGame, setIsInGame] = useState(false);
 
   // Separate function to fetch player positions
   const fetchPlayerPositions = async () => {
@@ -142,6 +147,7 @@ function App() {
       const calldata = CallData.compile([gameId]);
       const result = await contract.add_player(calldata);
       console.log("Added player:", result);
+      setIsInGame(true);
     } catch (error) {
       console.error("Failed to add player:", error);
     }
@@ -221,9 +227,9 @@ function App() {
       const result = await account.execute({
         contractAddress: PACROYALE_ADDRESS,
         entrypoint: "init_game",
-        calldata: CallData.compile([])
+        calldata: CallData.compile([]),
       });
-      
+
       console.log("Initialized game:", result);
     } catch (error) {
       console.error("Failed to initialize game:", error);
@@ -239,7 +245,7 @@ function App() {
         calldata: CallData.compile([gameId]),
       });
 
-      if (winnerResponse && winnerResponse[0] !== '0x0') {
+      if (winnerResponse && winnerResponse[0] !== "0x0") {
         const winnerAddress = winnerResponse[0];
         setWinner(winnerAddress);
         console.log("Game over! Winner:", winnerAddress);
@@ -283,7 +289,7 @@ function App() {
   console.log("Winner:", winner?.toLowerCase());
   return (
     <>
-      <DevWallet playerPositions={playerPositions} />{" "}
+      <DevWallet playerPositions={playerPositions} isInGame={isInGame} />{" "}
       {page == "board" && (
         <div className="fixed left-4 top-20 flex flex-col gap-2 z-50">
           <div className="text-white">Game ID: {gameId}</div>
@@ -324,9 +330,9 @@ function App() {
             <button
               onClick={handleAddPlayer}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              disabled={!address}
+              disabled={!address || isInGame}
             >
-              Add Player
+              Join Game (-50 PAC)
             </button>
           </div>
         </div>
@@ -335,7 +341,7 @@ function App() {
         <GameEndModal
           isOpen={showGameOverModal}
           isWinner={normalizeAddress(address) === normalizeAddress(winner)}
-          tokenAmount={winningBalance}
+          tokenAmount={winningBalance + (playerPositions.length - 1) * 50}
           onClose={() => setShowGameOverModal(false)}
           winnerText={`Player ${winningPlayerNumber} Won!`}
         />
