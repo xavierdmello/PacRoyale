@@ -19,50 +19,93 @@ const normalizeAddress = (address: string | undefined): string => {
 const PREFUNDED_ACCOUNTS = [
   {
     address:
-      "0x04bde6f77c36ecaccf5bfc751715eef76fb057550d3bc3d68578874f71e1030c",
+      "0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691",
     privateKey:
-      "0x0000000000000000000000000000000051ed85f0e1e3c681a082222b16f75d51",
+      "0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9",
+    publicKey:
+      "0x039d9e6ce352ad4530a0ef5d5a18fd3303c3606a7fa6ac5b620020ad681cc33b",
   },
   {
     address:
-      "0x047f14191fb3edaa94c507d2e016ca1d491104f0cbad0a5c74412df6f2153c00",
+      "0x078662e7352d062084b0010068b99288486c2d8b914f6e2a55ce945f8792c8b1",
     privateKey:
-      "0x000000000000000000000000000000008f56cad93d79c6fd96f433cb6b4bb80b",
+      "0x000000000000000000000000000000000e1406455b7d66b1690803be066cbe5e",
+    publicKey:
+      "0x007a1bb2744a7dd29bffd44341dbd78008adb4bc11733601e7eddff322ada9cb",
   },
   {
     address:
-      "0x0577412f1f4676f16070bf3b9c2b16d34218f32bea0baa7aeb78796c5c6a158d",
+      "0x049dfb8ce986e21d354ac93ea65e6a11f639c1934ea253e5ff14ca62eca0f38e",
     privateKey:
-      "0x000000000000000000000000000000005ced7df5bed476cc804777d507b95fcb",
+      "0x00000000000000000000000000000000a20a02f0ac53692d144b20cb371a60d7",
+    publicKey:
+      "0x00b8fd4ddd415902d96f61b7ad201022d495997c2dff8eb9e0eb86253e30fabc",
   },
   {
     address:
-      "0x05014c0b0b7b3018090411c10700d0048885520ba23a97b47b87f11a955dd62d",
+      "0x04f348398f859a55a0c80b1446c5fdc37edb3a8478a32f10764659fc241027d3",
     privateKey:
-      "0x00000000000000000000000000000000552066c4d3f3abed99a0b0670f498c9f",
+      "0x00000000000000000000000000000000a641611c17d4d92bd0790074e34beeb7",
+    publicKey:
+      "0x05e05d2510c6110bde03df9c1c126a1f592207d78cd9e481ac98540d5336d23c",
   },
   {
     address:
-      "0x039bd396c4030e56dc98a69f7fed64c33814c7478116c01b865dc6be234d33cb",
+      "0x00d513de92c16aa42418cf7e5b60f8022dbee1b4dfd81bcf03ebee079cfb5cb5",
     privateKey:
-      "0x0000000000000000000000000000000081df718af81f91c393032505b4080697",
+      "0x000000000000000000000000000000005b4ac23628a5749277bcabbf4726b025",
+    publicKey:
+      "0x04708e28e2424381659ea6b7dded2b3aff4b99debfcf6080160a9d098ac2214d",
   },
   {
     address:
-      "0x01b7a7a9ea41cf732ed17db68a11d9b2f5d03a779934a024e9fd1dc1346dc943",
+      "0x01e8c6c17efa3a047506c0b1610bd188aa3e3dd6c5d9227549b65428de24de78",
     privateKey:
-      "0x00000000000000000000000000000000748353fb4b43bd70c28aa8cdc7bd2051",
+      "0x00000000000000000000000000000000836203aceb0e9b0066138c321dda5ae6",
+    publicKey:
+      "0x0776d33371a98abee91ce60ac04321361565c8623cb612ee9357092da2162f51",
   },
-  // ... add more accounts as needed
+  {
+    address:
+      "0x0557ba9ef60b52dad611d79b60563901458f2476a5c1002a8b4869fcb6654c7e",
+    privateKey:
+      "0x0000000000000000000000000000000015b5e3013d752c909988204714f1ff35",
+    publicKey:
+      "0x004236bd1a08ee4bc3288081dfaf2b71d9a6e6e573d1b31a62719db73a88bb55",
+  },
+  {
+    address:
+      "0x003736286f1050d4ba816b4d56d15d80ca74c1752c4e847243f1da726c36e06f",
+    privateKey:
+      "0x00000000000000000000000000000000a56597ba3378fa9e6440ea9ae0cf2865",
+    publicKey:
+      "0x020b6aad24b5741eb49ed1b00ea78e3657e4d74af47e329f6f9fe489517474db",
+  },
+  {
+    address:
+      "0x04d8bb41636b42d3c69039f3537333581cc19356a0c93904fa3e569498c23ad0",
+    privateKey:
+      "0x00000000000000000000000000000000b467066159b295a7667b633d6bdaabac",
+    publicKey:
+      "0x00c6c2f7833f681c8fe001533e99571f6ff8dec59268792a429a14b5b252f1ad",
+  },
+  {
+    address:
+      "0x04b3f4ba8c00a02b66142a4b1dd41a4dfab4f92650922a3280977b0f03c75ee1",
+    privateKey:
+      "0x0000000000000000000000000000000057b2f8431c772e647712ae93cc616638",
+    publicKey:
+      "0x0374f7fcb50bc2d6b8b7a267f919232e3ac68354ce3eafe88d3df323fc1deb23",
+  },
 ];
 
 // Mock wallet options
 const MOCK_WALLETS = [
-  { name: "Wallet 1", address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" },
-  { name: "Wallet 2", address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac" },
-  { name: "Wallet 3", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
-  { name: "Wallet 4", address: "0x2f318C334780961FB129D2a6c30D0763d9a5C970" },
-  { name: "Wallet 5", address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
+  { name: "Wallet 1", address: PREFUNDED_ACCOUNTS[0].address },
+  { name: "Wallet 2", address: PREFUNDED_ACCOUNTS[1].address },
+  { name: "Wallet 3", address: PREFUNDED_ACCOUNTS[2].address },
+  { name: "Wallet 4", address: PREFUNDED_ACCOUNTS[3].address },
+  { name: "Wallet 5", address: PREFUNDED_ACCOUNTS[4].address },
 ];
 
 class DevnetConnector extends Connector {
