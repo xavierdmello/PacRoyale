@@ -17,10 +17,9 @@ More info: https://dorahacks.io/buidl/20381
       - `starkli declare target/dev/hello_world_PacRoyale.contract_class.json --rpc http://127.0.0.1:5050 --account ../account0_account.json --keystore ../account0_keystore.json`
       - Take note of the outputted class hash and replace CLASS_HASH with it in the next step
       - `starkli deploy CLASS_HASH --rpc http://127.0.0.1:5050 --account ../account0_account.json --keystore ../account0_keystore.json`
-6. `cd ../frontend/src/components/`
-7. Enter PACROYALE_ADDRESS address into `ContractAddresses.tsx`
-8. Install packages
-       - `cd ../../`
-       - `pnpm i`
+7. Enter PACROYALE_ADDRESS address into `frontend/src/components/ContractAddresses.tsx`
+8. Install packages:
+      - `cd` into `frontend/`
+      - `pnpm i`
 9. Start app: `pnpm dev`
 10. Head to the displayed url and play! ex. http://localhost:5173/ 
