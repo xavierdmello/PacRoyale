@@ -11,7 +11,7 @@ More info: https://dorahacks.io/buidl/20381
 2. Install Scarb, Starkli, and Starknet Foundry: https://docs.starknet.io/quick-start/environment-setup/
 3. Install Starknet Devnet: https://0xspaceshard.github.io/starknet-devnet-rs/
 4. Run Starknet Devnet: `starknet-devnet --seed 0`
-5. Deploy your account:
+5. Fetch your account:
    - `starkli signer keystore from-key account0_keystore.json`
       - Use `0x0000000000000000000000000000000071d7bb07b9a64f6f78ac4c816aff4da9` (Starknet default test account) as the private key
       - No need to enter a password (just hit enter)
