@@ -17,7 +17,7 @@ More info: https://dorahacks.io/buidl/20381
       - No need to enter a password (just hit enter)
    - `starkli account fetch 0x064b48806902a367c8598f4f95c305e8c1a1acba5f082d294a43793113115691 --rpc http://127.0.0.1:5050 --output account0_account.json`
 6. Build contracts:
-      - `cd ./cario`
+      - `cd ./cairo`
       - `scarb build`
 7. Deploy contracts:
       - `starkli declare target/dev/hello_world_PacRoyale.contract_class.json --rpc http://127.0.0.1:5050 --account ./account0_account.json --keystore ./account0_keystore.json`
